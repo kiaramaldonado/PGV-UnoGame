@@ -134,6 +134,13 @@ public class GameRoom {
 		startMessage.put("currentPlayer", gameState.getCurrentPlayer().getName());
 		broadcastMessage(startMessage);
 
+		// Pausa para permitir que los clientes abran GameFrame antes de recibir su mano
+		try {
+			Thread.sleep(800);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+
 		broadcastStateUpdate();
 	}
 
