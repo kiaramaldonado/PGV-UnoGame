@@ -47,8 +47,8 @@ public class MainMenuDialog extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 20));
         buttonPanel.setOpaque(false);
 
-        GameButton btnServer = new GameButton("CREAR SALA", "/assets/server-icon.png");
-        GameButton btnClient = new GameButton("JUGAR", "/assets/client-icon.png");
+        GameButton btnServer = new GameButton("CREAR SALA", null);
+        GameButton btnClient = new GameButton("JUGAR", null);
 
         btnServer.addActionListener(e -> {
             selectedMode = "server";

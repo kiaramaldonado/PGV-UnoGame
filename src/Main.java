@@ -1,8 +1,5 @@
 import net.salesianos.client.Client;
-import net.salesianos.client.ui.GameFrame;
-import net.salesianos.client.ui.LobbyFrame;
-import net.salesianos.client.ui.LoginFrame;
-import net.salesianos.client.ui.MainMenuDialog;
+import net.salesianos.client.ui.*;
 import net.salesianos.client.ui.components.GameButton;
 import net.salesianos.server.Server;
 
@@ -56,34 +53,45 @@ public class Main {
 	}
 
 	private static void startServer() {
-		String portStr = JOptionPane.showInputDialog(
-				null,
-				"Ingresa el puerto para abrir tu sala:",
-				DEFAULT_PORT
-		);
+		// 1. Pedir la configuración (nuestro diálogo personalizado)
+		ServerConfigDialog configDialog = new ServerConfigDialog(null, DEFAULT_PORT);
+		configDialog.setVisible(true);
 
-		// Si el usuario cancela (portStr es null), salimos silenciosamente
+		String portStr = configDialog.getPort();
+
+		// Si canceló, salimos silenciosamente
 		if (portStr == null) {
 			return;
 		}
 
 		int port = DEFAULT_PORT;
-		if (!portStr.trim().isEmpty()) {
-			try {
-				port = Integer.parseInt(portStr);
-			} catch (NumberFormatException e) {
-				JOptionPane.showMessageDialog(
-						null,
-						"Puerto inválido. Abriendo sala en el puerto por defecto: " + DEFAULT_PORT,
-						"Aviso",
-						JOptionPane.WARNING_MESSAGE
-				);
-			}
+		try {
+			port = Integer.parseInt(portStr.trim());
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null,
+					"Puerto inválido. Abriendo sala en el puerto por defecto: " + DEFAULT_PORT,
+					"Aviso",
+					JOptionPane.WARNING_MESSAGE);
 		}
 
+		// 2. Instanciar el servidor
 		Server server = new Server(port);
-		System.out.println("Sala creada y esperando jugadores en el puerto " + port + "...");
-		server.start();
+
+		// 3. Mostrar la nueva ventana visual de "Sala Abierta"
+		ServerActiveFrame activeFrame = new ServerActiveFrame(server, port);
+		activeFrame.setVisible(true);
+
+		// 4. Arrancar el servidor en un HILO NUEVO
+		// Esto es VITAL para que el GIF gire y el botón "CERRAR" reaccione
+		int finalPort = port;
+		Thread serverThread = new Thread(() -> {
+			System.out.println("Sala creada y esperando jugadores en el puerto " + finalPort + "...");
+			server.start();
+		});
+
+		// El hilo se cerrará automáticamente si se cierra la app
+		serverThread.setDaemon(true);
+		serverThread.start();
 	}
 
 	private static void startClient() {
