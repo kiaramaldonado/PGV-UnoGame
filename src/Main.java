@@ -2,15 +2,18 @@ import net.salesianos.client.Client;
 import net.salesianos.client.ui.GameFrame;
 import net.salesianos.client.ui.LobbyFrame;
 import net.salesianos.client.ui.LoginFrame;
+import net.salesianos.client.ui.MainMenuDialog;
+import net.salesianos.client.ui.components.GameButton;
 import net.salesianos.server.Server;
 
 import javax.swing.*;
-import java.awt.GraphicsEnvironment;
+import java.awt.*;
+import java.net.URL;
 import java.util.Scanner;
 
 /**
  * Punto de entrada de la aplicación.
- * Permite elegir entre ejecutar como cliente o servidor.
+ * Permite elegir entre ejecutar como creador de sala (servidor) o jugador (cliente).
  */
 public class Main {
 
@@ -23,8 +26,8 @@ public class Main {
 			startServer();
 		} else if ("client".equalsIgnoreCase(mode)) {
 			startClient();
-		} else {
-			System.out.println("Opción inválida");
+		} else if (!mode.isEmpty()) {
+			System.out.println("Opción cancelada o inválida");
 		}
 	}
 
@@ -33,8 +36,8 @@ public class Main {
 			// Si no hay GUI (línea de comandos)
 			Scanner scanner = new Scanner(System.in);
 			System.out.println("=== UNO Game ===");
-			System.out.println("1. Servidor");
-			System.out.println("2. Cliente");
+			System.out.println("1. 🌐 Crear Sala (Abrir puerto)");
+			System.out.println("2. 🎮 Jugar (Unirse a sala)");
 			System.out.print("Selecciona una opción: ");
 			String input = scanner.nextLine().trim();
 			scanner.close();
@@ -45,46 +48,41 @@ public class Main {
 				default -> "";
 			};
 		} else {
-			// Mostrar diálogo en GUI
-			String[] options = {"Servidor", "Cliente"};
-			int choice = JOptionPane.showOptionDialog(
-				null,
-				"¿Deseas ejecutar como servidor o cliente?",
-				"UNO - Seleccionar modo",
-				JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE,
-				null,
-				options,
-				options[1]
-			);
+			MainMenuDialog menuDialog = new MainMenuDialog();
+			menuDialog.setVisible(true);
 
-			return choice == 0 ? "server" : "client";
+			return menuDialog.getSelectedMode();
 		}
 	}
 
 	private static void startServer() {
 		String portStr = JOptionPane.showInputDialog(
-			null,
-			"Ingresa el puerto para el servidor:",
-			DEFAULT_PORT
+				null,
+				"Ingresa el puerto para abrir tu sala:",
+				DEFAULT_PORT
 		);
 
+		// Si el usuario cancela (portStr es null), salimos silenciosamente
+		if (portStr == null) {
+			return;
+		}
+
 		int port = DEFAULT_PORT;
-		if (portStr != null && !portStr.trim().isEmpty()) {
+		if (!portStr.trim().isEmpty()) {
 			try {
 				port = Integer.parseInt(portStr);
 			} catch (NumberFormatException e) {
 				JOptionPane.showMessageDialog(
-					null,
-					"Puerto inválido. Usando puerto " + DEFAULT_PORT,
-					"Error",
-					JOptionPane.ERROR_MESSAGE
+						null,
+						"Puerto inválido. Abriendo sala en el puerto por defecto: " + DEFAULT_PORT,
+						"Aviso",
+						JOptionPane.WARNING_MESSAGE
 				);
 			}
 		}
 
 		Server server = new Server(port);
-		System.out.println("Iniciando servidor en puerto " + port + "...");
+		System.out.println("Sala creada y esperando jugadores en el puerto " + port + "...");
 		server.start();
 	}
 
@@ -103,10 +101,10 @@ public class Main {
 			@Override
 			public void onLoginFailed(String reason) {
 				JOptionPane.showMessageDialog(
-					loginFrame,
-					"Error: " + reason,
-					"Conexión fallida",
-					JOptionPane.ERROR_MESSAGE
+						loginFrame,
+						"Error: " + reason,
+						"Conexión fallida",
+						JOptionPane.ERROR_MESSAGE
 				);
 			}
 		});
