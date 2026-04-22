@@ -252,9 +252,10 @@ public class GameFrame extends JFrame {
 		for (String cardStr : hand) {
 			Card card = parseCard(cardStr);
 			if (card != null) {
-				CardButton cardButton = new CardButton(card, e -> selectCard(cardButton));
-				cardButtons.add(cardButton);
-				handPanel.add(cardButton);
+				CardButton[] cardButtonRef = new CardButton[1];
+				cardButtonRef[0] = new CardButton(card, e -> selectCard(cardButtonRef[0]));
+				cardButtons.add(cardButtonRef[0]);
+				handPanel.add(cardButtonRef[0]);
 			}
 		}
 
