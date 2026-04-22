@@ -409,30 +409,19 @@ public class GameFrame extends JFrame {
 			return;
 		}
 
+		// Deseleccionar la anterior si hubiera alguna (aunque ahora será instantáneo)
 		if (selectedCard != null) {
 			selectedCard.deselect();
 		}
+
 		selectedCard = cardButton;
 		selectedCard.select();
 
-		// Diálogo tematizado
-		int response = JOptionPane.showOptionDialog(
-				this,
-				"¿Quieres jugar esta carta?",
-				"Confirmar jugada",
-				JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE,
-				null,
-				new String[]{"Jugar", "Cancelar"},
-				"Jugar"
-		);
+		// --- JUGAR LA CARTA INMEDIATAMENTE ---
+		playCard(selectedCard.getCard());
 
-		if (response == JOptionPane.YES_OPTION) {
-			playCard(selectedCard.getCard());
-		} else {
-			selectedCard.deselect();
-			selectedCard = null;
-		}
+		// Limpiamos la selección, ya que la carta se va a enviar al servidor
+		selectedCard = null;
 	}
 
 	private void playCard(Card card) {
