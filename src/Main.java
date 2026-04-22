@@ -14,7 +14,7 @@ import java.util.Scanner;
  */
 public class Main {
 
-	private static final int DEFAULT_PORT = 5000;
+	private static final int DEFAULT_PORT = 8888;
 
 	public static void main(String[] args) {
 		String mode = askMode();
