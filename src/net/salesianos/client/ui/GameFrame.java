@@ -2,11 +2,15 @@ package net.salesianos.client.ui;
 
 import net.salesianos.client.Client;
 import net.salesianos.client.ui.components.CardButton;
+import net.salesianos.client.ui.components.GameButton;
+import net.salesianos.client.ui.components.UIUtils;
 import net.salesianos.model.Card;
 import net.salesianos.protocol.Message;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,14 +30,14 @@ public class GameFrame extends JFrame {
 
 	// Componentes UI
 	private JPanel handPanel;
-	private JLabel currentCardLabel;
+	private JPanel discardPileContainer;
+	private JButton drawPileButton;
 	private JLabel currentPlayerLabel;
-	private JLabel deckSizeLabel;
-	private JButton drawButton;
+	private JLabel directionLabel;
 	private JDialog unoDialog;
 	private JTextArea chatArea;
 	private JTextField chatInput;
-	private JButton sendChatButton;
+	private GameButton sendChatButton;
 	private JList<String> playersList;
 	private DefaultListModel<String> playersListModel;
 	private List<CardButton> cardButtons;
@@ -57,7 +61,7 @@ public class GameFrame extends JFrame {
 
 		setTitle("UNO - En juego");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(1200, 700);
+		setSize(1200, 750); // Un poco más alto para dar espacio a las cartas
 		setLocationRelativeTo(null);
 		setResizable(false);
 
@@ -66,101 +70,195 @@ public class GameFrame extends JFrame {
 	}
 
 	private void initComponents() {
-		setLayout(new BorderLayout());
+		// Fondo general
+		getContentPane().setBackground(new Color(45, 45, 45));
+		setLayout(new BorderLayout(10, 10));
 
-		// Panel principal del juego
-		JPanel gamePanel = new JPanel(new BorderLayout());
-		gamePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// ==========================================
+		// PANEL PRINCIPAL (Mesa y Mano)
+		// ==========================================
+		JPanel mainGamePanel = new JPanel(new BorderLayout(10, 10));
+		mainGamePanel.setOpaque(false);
+		mainGamePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
 
-		// Panel superior: info y botones
-		JPanel topPanel = new JPanel(new GridLayout(1, 2));
+		// --- PANEL SUPERIOR: INFO DE TURNO ---
+		JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
+		topPanel.setOpaque(false);
 
-		JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-		currentCardLabel = new JLabel("Carta central: ?");
-		currentCardLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		currentPlayerLabel = new JLabel("Turno: ?");
-		currentPlayerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		infoPanel.add(currentCardLabel);
-		infoPanel.add(currentPlayerLabel);
-		topPanel.add(infoPanel);
+		currentPlayerLabel = new JLabel("Esperando turno...");
+		currentPlayerLabel.setFont(new Font("Arial", Font.BOLD, 24));
+		currentPlayerLabel.setForeground(Color.WHITE);
 
-		JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-		drawButton = new JButton("Robar carta");
-		drawButton.addActionListener(e -> drawCard());
-		actionPanel.add(drawButton);
-		topPanel.add(actionPanel);
+		directionLabel = new JLabel("⇄"); // Indicador de dirección
+		directionLabel.setFont(new Font("Arial", Font.BOLD, 28));
+		directionLabel.setForeground(Color.LIGHT_GRAY);
 
-		gamePanel.add(topPanel, BorderLayout.NORTH);
+		topPanel.add(currentPlayerLabel);
+		topPanel.add(directionLabel);
+		mainGamePanel.add(topPanel, BorderLayout.NORTH);
 
-		// Panel central: mano de cartas
-		JPanel centerPanel = new JPanel(new BorderLayout());
-		centerPanel.setBorder(BorderFactory.createTitledBorder("Tu mano"));
+		// --- PANEL CENTRAL: LA MESA (Mazo y Descarte) ---
+		JPanel tablePanel = new JPanel(new GridBagLayout());
+		tablePanel.setOpaque(false);
 
-		handPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		handPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(0, 20, 0, 20); // Espacio entre el mazo y la pila
+
+		// 1. Mazo para robar (Carta boca abajo)
+		drawPileButton = createDrawPileButton();
+		gbc.gridx = 0;
+		tablePanel.add(drawPileButton, gbc);
+
+		// 2. Pila de descartes (Carta actual)
+		discardPileContainer = new JPanel(new BorderLayout());
+		discardPileContainer.setOpaque(false);
+		discardPileContainer.setPreferredSize(new Dimension(120, 180));
+
+		// Placeholder inicial
+		JLabel placeholderLabel = new JLabel("?", SwingConstants.CENTER);
+		placeholderLabel.setFont(new Font("Arial", Font.BOLD, 40));
+		placeholderLabel.setForeground(Color.GRAY);
+		placeholderLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2, true));
+		discardPileContainer.add(placeholderLabel, BorderLayout.CENTER);
+
+		gbc.gridx = 1;
+		tablePanel.add(discardPileContainer, gbc);
+
+		mainGamePanel.add(tablePanel, BorderLayout.CENTER);
+
+		// --- PANEL INFERIOR: MANO DEL JUGADOR ---
+		JPanel bottomPanel = new JPanel(new BorderLayout());
+		bottomPanel.setOpaque(false);
+
+		TitledBorder handBorder = BorderFactory.createTitledBorder(
+				BorderFactory.createLineBorder(Color.GRAY), "Tu Mano");
+		handBorder.setTitleColor(Color.WHITE);
+		handBorder.setTitleFont(new Font("Arial", Font.BOLD, 14));
+		bottomPanel.setBorder(handBorder);
+
+		handPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, -10, 10)); // Margen negativo para que se solapen un poco como un abanico
+		handPanel.setBackground(new Color(55, 55, 55));
 
 		JScrollPane handScroll = new JScrollPane(handPanel);
-		handScroll.setPreferredSize(new Dimension(800, 120));
-		centerPanel.add(handScroll, BorderLayout.CENTER);
+		handScroll.setPreferredSize(new Dimension(800, 220));
+		handScroll.setBorder(null);
+		handScroll.getViewport().setBackground(new Color(55, 55, 55));
+		handScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		handScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
-		gamePanel.add(centerPanel, BorderLayout.CENTER);
+		bottomPanel.add(handScroll, BorderLayout.CENTER);
+		mainGamePanel.add(bottomPanel, BorderLayout.SOUTH);
 
-		// Panel inferior: estados y mazo
-		JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-		deckSizeLabel = new JLabel("Mazo: ?");
-		deckSizeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-		bottomPanel.add(deckSizeLabel);
+		add(mainGamePanel, BorderLayout.CENTER);
 
-		gamePanel.add(bottomPanel, BorderLayout.SOUTH);
+		// ==========================================
+		// PANEL LATERAL (Chat y Jugadores)
+		// ==========================================
+		JPanel sidePanel = new JPanel(new BorderLayout(0, 10));
+		sidePanel.setOpaque(false);
+		sidePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
+		sidePanel.setPreferredSize(new Dimension(300, 0));
 
-		add(gamePanel, BorderLayout.CENTER);
+		// --- LISTA DE JUGADORES ---
+		JPanel playersPanel = new JPanel(new BorderLayout());
+		playersPanel.setOpaque(false);
+		TitledBorder playersBorder = BorderFactory.createTitledBorder(
+				BorderFactory.createLineBorder(Color.GRAY), "Jugadores");
+		playersBorder.setTitleColor(Color.WHITE);
+		playersPanel.setBorder(playersBorder);
 
-		// Panel lateral: chat y jugadores
-		JPanel sidePanel = new JPanel(new BorderLayout());
-		sidePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		sidePanel.setPreferredSize(new Dimension(250, 0));
+		playersListModel = new DefaultListModel<>();
+		playersList = new JList<>(playersListModel);
+		playersList.setBackground(new Color(60, 60, 60));
+		playersList.setForeground(Color.WHITE);
+		playersList.setFont(new Font("Arial", Font.BOLD, 14));
+		playersList.setSelectionBackground(new Color(80, 80, 80));
 
-		// Chat
-		JPanel chatPanel = new JPanel(new BorderLayout());
-		chatPanel.setBorder(BorderFactory.createTitledBorder("Chat"));
+		JScrollPane playersScroll = new JScrollPane(playersList);
+		playersScroll.setPreferredSize(new Dimension(280, 150));
+		playersScroll.setBorder(null);
+		playersPanel.add(playersScroll, BorderLayout.CENTER);
+
+		sidePanel.add(playersPanel, BorderLayout.NORTH);
+
+		// --- CHAT ---
+		JPanel chatPanel = new JPanel(new BorderLayout(0, 5));
+		chatPanel.setOpaque(false);
+		TitledBorder chatBorder = BorderFactory.createTitledBorder(
+				BorderFactory.createLineBorder(Color.GRAY), "Chat de Sala");
+		chatBorder.setTitleColor(Color.WHITE);
+		chatPanel.setBorder(chatBorder);
 
 		chatArea = new JTextArea();
 		chatArea.setEditable(false);
 		chatArea.setLineWrap(true);
 		chatArea.setWrapStyleWord(true);
-		chatArea.setFont(new Font("Arial", Font.PLAIN, 11));
+		chatArea.setBackground(new Color(30, 30, 30));
+		chatArea.setForeground(Color.WHITE);
+		chatArea.setFont(new Font("Consolas", Font.PLAIN, 13));
+		chatArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		JScrollPane chatScroll = new JScrollPane(chatArea);
-		chatScroll.setPreferredSize(new Dimension(230, 200));
+		chatScroll.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
 		chatPanel.add(chatScroll, BorderLayout.CENTER);
 
 		JPanel inputPanel = new JPanel(new BorderLayout(5, 0));
+		inputPanel.setOpaque(false);
+
 		chatInput = new JTextField();
+		chatInput.setBackground(new Color(60, 60, 60));
+		chatInput.setForeground(Color.WHITE);
+		chatInput.setCaretColor(Color.WHITE);
+		chatInput.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.GRAY),
+				BorderFactory.createEmptyBorder(5, 5, 5, 5)
+		));
 		chatInput.addActionListener(e -> sendChat());
-		sendChatButton = new JButton("Enviar");
+
+		sendChatButton = new GameButton("ENVIAR", null);
+		sendChatButton.setPreferredSize(new Dimension(80, 30));
+		sendChatButton.setFont(new Font("Arial", Font.BOLD, 10));
 		sendChatButton.addActionListener(e -> sendChat());
+
 		inputPanel.add(chatInput, BorderLayout.CENTER);
 		inputPanel.add(sendChatButton, BorderLayout.EAST);
 
 		chatPanel.add(inputPanel, BorderLayout.SOUTH);
 		sidePanel.add(chatPanel, BorderLayout.CENTER);
 
-		// Lista de jugadores
-		JPanel playersPanel = new JPanel(new BorderLayout());
-		playersPanel.setBorder(BorderFactory.createTitledBorder("Jugadores"));
-
-		playersListModel = new DefaultListModel<>();
-		playersList = new JList<>(playersListModel);
-		playersList.setFont(new Font("Arial", Font.PLAIN, 11));
-		playersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-		JScrollPane playersScroll = new JScrollPane(playersList);
-		playersScroll.setPreferredSize(new Dimension(230, 150));
-		playersPanel.add(playersScroll, BorderLayout.CENTER);
-
-		sidePanel.add(playersPanel, BorderLayout.SOUTH);
-
 		add(sidePanel, BorderLayout.EAST);
+	}
+
+	/**
+	 * Crea el mazo de robar usando la imagen real del reverso de la carta.
+	 */
+	private JButton createDrawPileButton() {
+		JButton btn = new JButton();
+		btn.setPreferredSize(new Dimension(120, 180));
+
+		btn.setContentAreaFilled(false);
+		btn.setFocusPainted(false);
+		btn.setBorderPainted(false);
+
+		try {
+			URL cardBackUrl = getClass().getResource("/assets/uno-card.png");
+			if (cardBackUrl != null) {
+				ImageIcon icon = new ImageIcon(cardBackUrl);
+				Image img = icon.getImage().getScaledInstance(120, 180, Image.SCALE_SMOOTH);
+				btn.setIcon(new ImageIcon(img));
+			} else {
+				btn.setBackground(new Color(228, 30, 38));
+				btn.setOpaque(true);
+				btn.setText("UNO");
+				btn.setForeground(Color.WHITE);
+				btn.setFont(new Font("Arial", Font.BOLD, 30));
+			}
+		} catch (Exception e) {
+			System.out.println("No se pudo cargar la imagen del mazo: " + e.getMessage());
+		}
+
+		btn.addActionListener(e -> drawCard());
+		return btn;
 	}
 
 	private void setupClientListener() {
@@ -174,9 +272,9 @@ public class GameFrame extends JFrame {
 			public void onDisconnected() {
 				SwingUtilities.invokeLater(() -> {
 					JOptionPane.showMessageDialog(GameFrame.this,
-						"Desconectado del servidor",
-						"Error de conexión",
-						JOptionPane.ERROR_MESSAGE);
+							"Desconectado del servidor",
+							"Error de conexión",
+							JOptionPane.ERROR_MESSAGE);
 					if (listener != null) {
 						listener.onDisconnected();
 					}
@@ -230,16 +328,26 @@ public class GameFrame extends JFrame {
 		direction = message.getInteger("direction");
 
 		Card centerCard = parseCard(currentCard);
+		discardPileContainer.removeAll();
 		if (centerCard != null) {
-			currentCardLabel.setText("Carta central: " + CardButton.getCardSymbol(centerCard));
-			currentCardLabel.setForeground(CardButton.getCardColorForUI(centerCard));
-			currentCardLabel.setFont(new Font("Arial", Font.BOLD, 22)); // Hacer que destaque más
+			CardButton centerBtn = new CardButton(centerCard, e -> {});
+			centerBtn.setCursor(Cursor.getDefaultCursor());
+			discardPileContainer.add(centerBtn, BorderLayout.CENTER);
+		}
+		discardPileContainer.revalidate();
+		discardPileContainer.repaint();
+
+		// Actualizar UI del turno actual
+		boolean isMyTurn = currentPlayer.equals(client.getPlayerName());
+		if (isMyTurn) {
+			currentPlayerLabel.setText("¡ES TU TURNO!");
+			currentPlayerLabel.setForeground(new Color(100, 255, 100));
 		} else {
-			currentCardLabel.setText("Carta central: ?");
-			currentCardLabel.setForeground(Color.BLACK);
+			currentPlayerLabel.setText("Turno de: " + currentPlayer);
+			currentPlayerLabel.setForeground(Color.WHITE);
 		}
 
-		currentPlayerLabel.setText("Turno: " + currentPlayer);
+		directionLabel.setText(direction == 1 ? "⟳" : "⟲");
 
 		// Actualizar la mano del jugador
 		List<String> hand = (List<String>) message.get("hand");
@@ -253,9 +361,13 @@ public class GameFrame extends JFrame {
 			updatePlayersList(players);
 		}
 
-		// Actualizar disponibilidad de botones
-		boolean isMyTurn = currentPlayer.equals(client.getPlayerName());
-		drawButton.setEnabled(isMyTurn);
+		// Actualizar disponibilidad del mazo de robar
+		drawPileButton.setEnabled(isMyTurn);
+		if(isMyTurn) {
+			drawPileButton.setBorder(BorderFactory.createLineBorder(new Color(100, 255, 100), 4, true)); // Brillo verde si es tu turno
+		} else {
+			drawPileButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 4, true));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -285,23 +397,34 @@ public class GameFrame extends JFrame {
 		for (Map<String, Object> playerInfo : players) {
 			String name = (String) playerInfo.get("name");
 			Integer handSize = (Integer) playerInfo.get("handSize");
-			playersListModel.addElement(name + " (" + handSize + " cartas)");
+			// Pequeño indicador si es su turno
+			String turnIndicator = name.equals(currentPlayer) ? " ⬅" : "";
+			playersListModel.addElement(name + ": " + handSize + " cartas" + turnIndicator);
 		}
 	}
 
 	private void selectCard(CardButton cardButton) {
+		// Solo puedes seleccionar si es tu turno
+		if (!currentPlayer.equals(client.getPlayerName())) {
+			return;
+		}
+
 		if (selectedCard != null) {
 			selectedCard.deselect();
 		}
 		selectedCard = cardButton;
 		selectedCard.select();
 
-		// Mostrar confirmación amigable
-		int response = JOptionPane.showConfirmDialog(
+		// Diálogo tematizado
+		int response = JOptionPane.showOptionDialog(
 				this,
-				"¿Jugar la carta " + CardButton.getCardSymbol(selectedCard.getCard()) + " (" + selectedCard.getCard().getColor() + ")?",
+				"¿Quieres jugar esta carta?",
 				"Confirmar jugada",
-				JOptionPane.YES_NO_OPTION
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE,
+				null,
+				new String[]{"Jugar", "Cancelar"},
+				"Jugar"
 		);
 
 		if (response == JOptionPane.YES_OPTION) {
@@ -341,39 +464,41 @@ public class GameFrame extends JFrame {
 
 	private void handleGameOver(Message message) {
 		String winner = message.getString("winnerName");
-		JOptionPane.showMessageDialog(this, "¡" + winner + " ha ganado!", "Juego terminado", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, "¡" + winner + " ha ganado la partida!", "🏆 Fin del juego", JOptionPane.INFORMATION_MESSAGE);
 		if (listener != null) {
 			listener.onGameEnd();
 		}
 	}
 
 	private void showUnoDialog(String targetName) {
-		// Cierra cualquier aviso anterior si se solapa
 		if (unoDialog != null) {
 			unoDialog.dispose();
 		}
 
-		unoDialog = new JDialog(this, "¡Atención!", false); // false = No bloquea jugar cartas
-		unoDialog.setSize(300, 150);
+		unoDialog = new JDialog(this, "¡Atención!", false);
+		unoDialog.setSize(350, 180);
 		unoDialog.setLocationRelativeTo(this);
-		unoDialog.setLayout(new BorderLayout(10, 10));
+		unoDialog.getContentPane().setBackground(new Color(45, 45, 45));
+		unoDialog.setLayout(new BorderLayout(10, 20));
 
 		JLabel label = new JLabel("¡" + targetName + " tiene 1 carta!", SwingConstants.CENTER);
-		label.setFont(new Font("Arial", Font.BOLD, 14));
+		label.setFont(new Font("Arial", Font.BOLD, 18));
+		label.setForeground(Color.WHITE);
+		label.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 
-		JButton btn = new JButton("¡UNO!");
-		btn.setFont(new Font("Arial", Font.BOLD, 24));
-		btn.setBackground(new Color(200, 50, 50));
-		btn.setForeground(Color.WHITE);
-		btn.setFocusPainted(false);
+		JPanel btnPanel = new JPanel(new FlowLayout());
+		btnPanel.setOpaque(false);
 
+		GameButton btn = new GameButton("¡GRITAR UNO!", null);
+		btn.setPreferredSize(new Dimension(200, 50));
 		btn.addActionListener(e -> {
 			client.sendMessage(new Message(Message.MessageType.UNO_BUTTON));
 			hideUnoDialog();
 		});
 
+		btnPanel.add(btn);
 		unoDialog.add(label, BorderLayout.NORTH);
-		unoDialog.add(btn, BorderLayout.CENTER);
+		unoDialog.add(btnPanel, BorderLayout.CENTER);
 		unoDialog.setAlwaysOnTop(true);
 		unoDialog.setVisible(true);
 	}
@@ -408,5 +533,4 @@ public class GameFrame extends JFrame {
 	public void setGameListener(GameListener listener) {
 		this.listener = listener;
 	}
-
 }
