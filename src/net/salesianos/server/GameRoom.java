@@ -74,7 +74,10 @@ public class GameRoom {
 		players.remove(handler);
 		playerMap.remove(handler.getPlayerId());
 
-		LOGGER.log(Level.INFO, "Jugador " + handler.getPlayerName() + " removido de sala " + roomId);
+		// IMPORTANTE: Quitarlo de los jugadores listos si se desconecta
+		readyPlayers.remove(handler.getPlayerId());
+
+		LOGGER.log(Level.INFO, "Jugador " + handler.getPlayerName() + " salió de sala " + roomId);
 
 		if (gameStarted && !gameEnded) {
 			// Si hay menos de 2 jugadores, termina la partida
@@ -84,19 +87,27 @@ public class GameRoom {
 				broadcastStateUpdate();
 			}
 		} else {
+			// Al actualizar el lobby, el método checkGameStart se llama si alguien se va y todos los que quedan estaban listos
 			broadcastLobbyUpdate();
+			checkGameStart();
 		}
 	}
 
 	/**
-	 * Verifica si se debe iniciar el juego (máximo de jugadores alcanzado o timer).
+	 * Verifica si se debe iniciar el juego (máximo de jugadores alcanzado o todos listos).
 	 */
 	private void checkGameStart() {
-		if (players.size() >= MIN_PLAYERS && readyPlayers.size() == players.size()) {
+		// Si hay 4 jugadores, comienza directamente (ignora si le dieron a "Listo")
+		if (players.size() == MAX_PLAYERS) {
+			LOGGER.log(Level.INFO, "4 jugadores alcanzados. Iniciando partida automáticamente.");
+			startGame();
+		}
+		// Si hay entre 2 y 3 jugadores, y TODOS han indicado que están listos
+		else if (players.size() >= MIN_PLAYERS && readyPlayers.size() == players.size()) {
+			LOGGER.log(Level.INFO, "Todos los jugadores (" + players.size() + ") están listos. Iniciando partida.");
 			startGame();
 		}
 	}
-
 	/**
 	 * Inicia la partida.
 	 */

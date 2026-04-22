@@ -136,6 +136,7 @@ public class LobbyFrame extends JFrame {
 			}
 		});
 	}
+
 	@SuppressWarnings("unchecked")
 	private void handleLobbyUpdate(Message message) {
 		System.out.println("[LOBBY] handleLobbyUpdate recibido en " + client.getPlayerName());
@@ -145,26 +146,14 @@ public class LobbyFrame extends JFrame {
 		Integer ready = message.getInteger("readyCount");
 		Integer max = message.getInteger("maxPlayers");
 
-		System.out.println("[LOBBY] Players: " + players);
-		System.out.println("[LOBBY] Connected: " + connected);
-		System.out.println("[LOBBY] Ready: " + ready);
-		System.out.println("[LOBBY] Max: " + max);
-
 		if (players != null) {
 			playerListModel.clear();
-
-			// Agregar jugador local primero
 			playerListModel.addElement(client.getPlayerName() + " (TÚ)");
-			System.out.println("[LOBBY] Agregado: " + client.getPlayerName() + " (TÚ)");
-
-			// Agregar otros jugadores
 			for (String player : players) {
 				if (!player.equals(client.getPlayerName())) {
 					playerListModel.addElement(player);
-					System.out.println("[LOBBY] Agregado: " + player);
 				}
 			}
-			System.out.println("[LOBBY] Total en lista: " + playerListModel.size());
 		}
 
 		if (connected != null && max != null) {
@@ -172,14 +161,24 @@ public class LobbyFrame extends JFrame {
 			playersConnected = connected;
 			maxPlayers = max;
 
-			if (connected >= max) {
-				waitingLabel.setText("¡Todos los jugadores listos! Iniciando...");
+			// LÓGICA DE ACTIVACIÓN DEL JUEGO Y BOTONES
+			if (connected < 2) {
+				waitingLabel.setText("Esperando a más jugadores (mínimo 2)...");
+				waitingLabel.setForeground(Color.BLUE);
+				readyButton.setEnabled(false);
+				readyButton.setText("Faltan jugadores...");
+			} else if (connected == max) {
+				waitingLabel.setText("¡Sala llena! Iniciando...");
 				waitingLabel.setForeground(new Color(0, 150, 0));
 				readyButton.setEnabled(false);
 			} else {
-				int remaining = max - connected;
-				waitingLabel.setText("Esperando " + remaining + " jugador(es) más...");
+				waitingLabel.setText("Esperando a que los jugadores estén listos...");
 				waitingLabel.setForeground(Color.BLUE);
+				// Solo habilitamos el botón si el usuario aún no le ha dado a "Listo"
+				if (!readyButton.getText().equals("Esperando a otros jugadores...")) {
+					readyButton.setEnabled(true);
+					readyButton.setText("Listo para jugar");
+				}
 			}
 		}
 	}
@@ -187,7 +186,10 @@ public class LobbyFrame extends JFrame {
 	private void markReady() {
 		readyButton.setEnabled(false);
 		readyButton.setText("Esperando a otros jugadores...");
-		// En este ejemplo, simplemente esperamos a que lleguen 4 jugadores
+
+		// Enviar el mensaje al servidor indicando que este jugador está listo
+		Message readyMsg = new Message(Message.MessageType.PLAYER_READY);
+		client.sendMessage(readyMsg);
 	}
 
 	private void cancelLobby() {
