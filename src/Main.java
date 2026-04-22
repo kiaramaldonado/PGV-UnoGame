@@ -95,7 +95,6 @@ public class Main {
 	}
 
 	private static void startClient() {
-		// Mostrar LoginFrame
 		LoginFrame loginFrame = new LoginFrame();
 		loginFrame.setVisible(true);
 
