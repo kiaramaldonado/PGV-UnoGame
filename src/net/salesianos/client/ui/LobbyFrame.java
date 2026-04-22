@@ -1,12 +1,13 @@
 package net.salesianos.client.ui;
 
 import net.salesianos.client.Client;
+import net.salesianos.client.ui.components.GameButton;
+import net.salesianos.client.ui.components.UIUtils; // <-- NUESTRO NUEVO IMPORT
 import net.salesianos.protocol.Message;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -20,8 +21,8 @@ public class LobbyFrame extends JFrame {
 	private Client client;
 	private JLabel playersLabel;
 	private JLabel waitingLabel;
-	private JButton readyButton;
-	private JButton cancelButton;
+	private GameButton readyButton;
+	private GameButton cancelButton;
 	private DefaultListModel<String> playerListModel;
 	private JList<String> playerList;
 	private LobbyListener listener;
@@ -38,7 +39,7 @@ public class LobbyFrame extends JFrame {
 
 		setTitle("UNO - Sala de Espera");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(500, 400);
+		setSize(500, 550);
 		setLocationRelativeTo(null);
 		setResizable(false);
 
@@ -47,51 +48,68 @@ public class LobbyFrame extends JFrame {
 	}
 
 	private void initComponents() {
-		JPanel panel = new JPanel(new BorderLayout());
-		panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		// Fondo principal
+		getContentPane().setBackground(new Color(45, 45, 45));
+		setLayout(new BorderLayout(20, 20));
 
-		// Panel superior con información
-		JPanel infoPanel = new JPanel(new GridLayout(2, 1, 0, 10));
+		JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+		mainPanel.setOpaque(false);
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-		playersLabel = new JLabel("Jugadores: 1/4");
-		playersLabel.setFont(new Font("Arial", Font.BOLD, 16));
+		// --- PANEL SUPERIOR: INFORMACIÓN ---
+		JPanel infoPanel = new JPanel(new GridLayout(3, 1, 0, 5));
+		infoPanel.setOpaque(false);
+
+		JLabel titleLabel = new JLabel("SALA DE ESPERA", SwingConstants.CENTER);
+		titleLabel.setForeground(Color.WHITE);
+		titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+		infoPanel.add(titleLabel);
+
+		playersLabel = new JLabel("Jugadores: 1/4", SwingConstants.CENTER);
+		playersLabel.setForeground(Color.WHITE);
+		playersLabel.setFont(new Font("Consolas", Font.BOLD, 18));
 		infoPanel.add(playersLabel);
 
-		waitingLabel = new JLabel("Esperando a que se conecten más jugadores...");
-		waitingLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-		waitingLabel.setForeground(Color.BLUE);
+		waitingLabel = new JLabel("Esperando a más jugadores...", SwingConstants.CENTER);
+		waitingLabel.setFont(new Font("Arial", Font.BOLD, 14));
+		waitingLabel.setForeground(new Color(100, 200, 255));
 		infoPanel.add(waitingLabel);
 
-		panel.add(infoPanel, BorderLayout.NORTH);
+		mainPanel.add(infoPanel, BorderLayout.NORTH);
 
-		// Panel central con lista de jugadores
+		// --- PANEL CENTRAL: LISTA DE JUGADORES ---
 		playerListModel = new DefaultListModel<>();
 		playerListModel.addElement(client.getPlayerName() + " (TÚ)");
 
 		playerList = new JList<>(playerListModel);
-		playerList.setFont(new Font("Arial", Font.PLAIN, 12));
-		playerList.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		playerList.setBackground(new Color(60, 60, 60));
+		playerList.setSelectionBackground(new Color(80, 80, 80));
+
+		// Aplicamos nuestro renderizador personalizado
+		playerList.setCellRenderer(new PlayerListRenderer());
 
 		JScrollPane scrollPane = new JScrollPane(playerList);
-		scrollPane.setPreferredSize(new Dimension(400, 150));
-		panel.add(scrollPane, BorderLayout.CENTER);
+		scrollPane.setBorder(BorderFactory.createLineBorder(new Color(228, 30, 38), 2));
+		scrollPane.getViewport().setBackground(new Color(60, 60, 60));
+		mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-		// Panel inferior con botones
+		// --- PANEL INFERIOR: BOTONES ---
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+		buttonPanel.setOpaque(false);
 
-		readyButton = new JButton("Listo para jugar");
-		readyButton.setFont(new Font("Arial", Font.PLAIN, 12));
+		readyButton = new GameButton("LISTO", null);
+		readyButton.setPreferredSize(new Dimension(180, 50));
 		readyButton.addActionListener(e -> markReady());
 		buttonPanel.add(readyButton);
 
-		cancelButton = new JButton("Cancelar");
-		cancelButton.setFont(new Font("Arial", Font.PLAIN, 12));
+		cancelButton = new GameButton("SALIR", null);
+		cancelButton.setPreferredSize(new Dimension(180, 50));
 		cancelButton.addActionListener(e -> cancelLobby());
 		buttonPanel.add(cancelButton);
 
-		panel.add(buttonPanel, BorderLayout.SOUTH);
+		mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-		add(panel);
+		add(mainPanel);
 	}
 
 	private void setupClientListener() {
@@ -105,9 +123,9 @@ public class LobbyFrame extends JFrame {
 			public void onDisconnected() {
 				SwingUtilities.invokeLater(() -> {
 					JOptionPane.showMessageDialog(LobbyFrame.this,
-						"Desconectado del servidor",
-						"Error de conexión",
-						JOptionPane.ERROR_MESSAGE);
+							"Desconectado del servidor",
+							"Error de conexión",
+							JOptionPane.ERROR_MESSAGE);
 					if (listener != null) {
 						listener.onCancelLobby();
 					}
@@ -143,7 +161,6 @@ public class LobbyFrame extends JFrame {
 
 		List<String> players = (List<String>) message.get("players");
 		Integer connected = message.getInteger("playersConnected");
-		Integer ready = message.getInteger("readyCount");
 		Integer max = message.getInteger("maxPlayers");
 
 		if (players != null) {
@@ -161,23 +178,19 @@ public class LobbyFrame extends JFrame {
 			playersConnected = connected;
 			maxPlayers = max;
 
-			// LÓGICA DE ACTIVACIÓN DEL JUEGO Y BOTONES
 			if (connected < 2) {
 				waitingLabel.setText("Esperando a más jugadores (mínimo 2)...");
-				waitingLabel.setForeground(Color.BLUE);
+				waitingLabel.setForeground(new Color(100, 200, 255));
 				readyButton.setEnabled(false);
-				readyButton.setText("Faltan jugadores...");
 			} else if (connected == max) {
 				waitingLabel.setText("¡Sala llena! Iniciando...");
-				waitingLabel.setForeground(new Color(0, 150, 0));
+				waitingLabel.setForeground(new Color(100, 255, 100));
 				readyButton.setEnabled(false);
 			} else {
 				waitingLabel.setText("Esperando a que los jugadores estén listos...");
-				waitingLabel.setForeground(Color.BLUE);
-				// Solo habilitamos el botón si el usuario aún no le ha dado a "Listo"
-				if (!readyButton.getText().equals("Esperando a otros jugadores...")) {
+				waitingLabel.setForeground(new Color(255, 204, 0));
+				if (readyButton.isEnabled() || !readyButton.getText().equals("ESPERANDO...")) {
 					readyButton.setEnabled(true);
-					readyButton.setText("Listo para jugar");
 				}
 			}
 		}
@@ -185,9 +198,8 @@ public class LobbyFrame extends JFrame {
 
 	private void markReady() {
 		readyButton.setEnabled(false);
-		readyButton.setText("Esperando a otros jugadores...");
+		readyButton.setText("ESPERANDO...");
 
-		// Enviar el mensaje al servidor indicando que este jugador está listo
 		Message readyMsg = new Message(Message.MessageType.PLAYER_READY);
 		client.sendMessage(readyMsg);
 	}
@@ -201,5 +213,56 @@ public class LobbyFrame extends JFrame {
 
 	public void setLobbyListener(LobbyListener listener) {
 		this.listener = listener;
+	}
+
+	// ==============================================================================
+	// CLASE INTERNA: RENDERIZADOR PERSONALIZADO PARA LA LISTA DE JUGADORES
+	// ==============================================================================
+	private static class PlayerListRenderer extends DefaultListCellRenderer {
+
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+			// Estilo general del texto
+			label.setForeground(Color.WHITE);
+			label.setFont(new Font("Arial", Font.BOLD, 16));
+			label.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 15));
+
+			String playerName = value.toString();
+
+			// Si es el usuario actual "(TÚ)", lo ponemos en cursiva para destacarlo
+			if (playerName.endsWith(" (TÚ)")) {
+				label.setFont(new Font("Arial", Font.BOLD | Font.ITALIC, 16));
+			}
+
+			// --- AQUÍ USAMOS NUESTRA NUEVA UTILIDAD ---
+			Color playerColor = UIUtils.getColorForPlayer(playerName);
+
+			// Crear y asignar el icono circular
+			label.setIcon(createCircleIcon(playerColor, 18));
+			label.setIconTextGap(15);
+
+			return label;
+		}
+
+		// Método auxiliar para dibujar el círculo de color
+		private Icon createCircleIcon(Color color, int size) {
+			return new Icon() {
+				@Override
+				public void paintIcon(Component c, Graphics g, int x, int y) {
+					Graphics2D g2 = (Graphics2D) g.create();
+					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					g2.setColor(color);
+					g2.fillOval(x, y, size, size);
+
+					g2.setColor(Color.DARK_GRAY);
+					g2.drawOval(x, y, size, size);
+					g2.dispose();
+				}
+				@Override public int getIconWidth() { return size; }
+				@Override public int getIconHeight() { return size; }
+			};
+		}
 	}
 }
