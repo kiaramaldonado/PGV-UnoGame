@@ -1,6 +1,7 @@
 package net.salesianos.client.ui;
 
 import net.salesianos.client.Client;
+import net.salesianos.client.ui.components.CardButton;
 import net.salesianos.model.Card;
 import net.salesianos.protocol.Message;
 
@@ -230,8 +231,8 @@ public class GameFrame extends JFrame {
 
 		Card centerCard = parseCard(currentCard);
 		if (centerCard != null) {
-			currentCardLabel.setText("Carta central: " + getCardSymbol(centerCard));
-			currentCardLabel.setForeground(getCardColorForUI(centerCard));
+			currentCardLabel.setText("Carta central: " + CardButton.getCardSymbol(centerCard));
+			currentCardLabel.setForeground(CardButton.getCardColorForUI(centerCard));
 			currentCardLabel.setFont(new Font("Arial", Font.BOLD, 22)); // Hacer que destaque más
 		} else {
 			currentCardLabel.setText("Carta central: ?");
@@ -298,7 +299,7 @@ public class GameFrame extends JFrame {
 		// Mostrar confirmación amigable
 		int response = JOptionPane.showConfirmDialog(
 				this,
-				"¿Jugar la carta " + getCardSymbol(selectedCard.getCard()) + " (" + selectedCard.getCard().getColor() + ")?",
+				"¿Jugar la carta " + CardButton.getCardSymbol(selectedCard.getCard()) + " (" + selectedCard.getCard().getColor() + ")?",
 				"Confirmar jugada",
 				JOptionPane.YES_NO_OPTION
 		);
@@ -408,73 +409,4 @@ public class GameFrame extends JFrame {
 		this.listener = listener;
 	}
 
-	private static String getCardSymbol(Card card) {
-		if (card == null) return "?";
-		return switch (card.getValue()) {
-			case ZERO -> "0";
-			case ONE -> "1";
-			case TWO -> "2";
-			case THREE -> "3";
-			case FOUR -> "4";
-			case FIVE -> "5";
-			case SIX -> "6";
-			case SEVEN -> "7";
-			case EIGHT -> "8";
-			case NINE -> "9";
-			case SALTAR -> "⊘";
-			case REVERSA -> "⇄";
-			case MAS_DOS -> "+2";
-		};
-	}
-
-	private static Color getCardColorForUI(Card card) {
-		if (card == null) return Color.BLACK;
-		return switch (card.getColor()) {
-			case ROJO -> new Color(200, 50, 50);
-			case AZUL -> new Color(50, 50, 200);
-			case VERDE -> new Color(50, 150, 50);
-			case AMARILLO -> new Color(200, 200, 50);
-		};
-	}
-
-	/**
-	 * Componente visual para una carta.
-	 */
-	private static class CardButton extends JButton {
-
-		private final Card card;
-		private boolean selected;
-
-		CardButton(Card card, java.awt.event.ActionListener action) {
-			this.card = card;
-			this.selected = false;
-
-			setText(getCardSymbol(card));
-			setPreferredSize(new Dimension(80, 100));
-			setFont(new Font("Arial", Font.BOLD, 30)); // Fuente mucho más grande
-
-			// Color de fondo según el color de la carta
-			setBackground(getCardColorForUI(card));
-			setForeground(Color.WHITE);
-			setOpaque(true);
-			setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-			setFocusPainted(false);
-
-			addActionListener(action);
-		}
-
-		void select() {
-			selected = true;
-			setBorder(BorderFactory.createLineBorder(Color.WHITE, 4));
-		}
-
-		void deselect() {
-			selected = false;
-			setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-		}
-
-		Card getCard() {
-			return card;
-		}
-	}
 }
