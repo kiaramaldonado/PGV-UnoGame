@@ -29,7 +29,7 @@ public class GameFrame extends JFrame {
 	private JLabel currentPlayerLabel;
 	private JLabel deckSizeLabel;
 	private JButton drawButton;
-	private JButton unoButton;
+	private JDialog unoDialog;
 	private JTextArea chatArea;
 	private JTextField chatInput;
 	private JButton sendChatButton;
@@ -86,10 +86,7 @@ public class GameFrame extends JFrame {
 		JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 		drawButton = new JButton("Robar carta");
 		drawButton.addActionListener(e -> drawCard());
-		unoButton = new JButton("¡UNO!");
-		unoButton.addActionListener(e -> unoAction());
 		actionPanel.add(drawButton);
-		actionPanel.add(unoButton);
 		topPanel.add(actionPanel);
 
 		gamePanel.add(topPanel, BorderLayout.NORTH);
@@ -206,8 +203,18 @@ public class GameFrame extends JFrame {
 					addChatMessage(playerName + ": " + chatMsg);
 					break;
 				case UNO_BUTTON:
-					String unoPlayer = message.getString("playerName");
-					addChatMessage("¡" + unoPlayer + " dice UNO!");
+					String action = message.getString("action");
+					if ("SHOW".equals(action)) {
+						String target = message.getString("targetPlayer");
+						showUnoDialog(target);
+					} else if ("HIDE".equals(action)) {
+						hideUnoDialog();
+					} else {
+						String unoPlayer = message.getString("playerName");
+						if (unoPlayer != null) {
+							addChatMessage("¡" + unoPlayer + " dice UNO!");
+						}
+					}
 					break;
 				default:
 					break;
@@ -306,12 +313,6 @@ public class GameFrame extends JFrame {
 		client.sendMessage(drawMessage);
 	}
 
-	private void unoAction() {
-		Message unoMessage = new Message(Message.MessageType.UNO_BUTTON);
-		client.sendMessage(unoMessage);
-		unoButton.setEnabled(false);
-	}
-
 	private void sendChat() {
 		String message = chatInput.getText().trim();
 		if (!message.isEmpty()) {
@@ -333,6 +334,44 @@ public class GameFrame extends JFrame {
 		JOptionPane.showMessageDialog(this, "¡" + winner + " ha ganado!", "Juego terminado", JOptionPane.INFORMATION_MESSAGE);
 		if (listener != null) {
 			listener.onGameEnd();
+		}
+	}
+
+	private void showUnoDialog(String targetName) {
+		// Cierra cualquier aviso anterior si se solapa
+		if (unoDialog != null) {
+			unoDialog.dispose();
+		}
+
+		unoDialog = new JDialog(this, "¡Atención!", false); // false = No bloquea jugar cartas
+		unoDialog.setSize(300, 150);
+		unoDialog.setLocationRelativeTo(this);
+		unoDialog.setLayout(new BorderLayout(10, 10));
+
+		JLabel label = new JLabel("¡" + targetName + " tiene 1 carta!", SwingConstants.CENTER);
+		label.setFont(new Font("Arial", Font.BOLD, 14));
+
+		JButton btn = new JButton("¡UNO!");
+		btn.setFont(new Font("Arial", Font.BOLD, 24));
+		btn.setBackground(new Color(200, 50, 50));
+		btn.setForeground(Color.WHITE);
+		btn.setFocusPainted(false);
+
+		btn.addActionListener(e -> {
+			client.sendMessage(new Message(Message.MessageType.UNO_BUTTON));
+			hideUnoDialog();
+		});
+
+		unoDialog.add(label, BorderLayout.NORTH);
+		unoDialog.add(btn, BorderLayout.CENTER);
+		unoDialog.setAlwaysOnTop(true);
+		unoDialog.setVisible(true);
+	}
+
+	private void hideUnoDialog() {
+		if (unoDialog != null) {
+			unoDialog.dispose();
+			unoDialog = null;
 		}
 	}
 

@@ -27,6 +27,7 @@ public class GameRoom {
 	private volatile int currentTurnIndex;
 	private boolean gameStarted;
 	private boolean gameEnded;
+	private volatile String unoTargetPlayerId = null;
 
 	public GameRoom(String roomId) {
 		this.roomId = roomId;
@@ -177,6 +178,18 @@ public class GameRoom {
 				return;
 			}
 
+			// Lanzar aviso a todos si el jugador se queda con 1 carta
+			if (currentPlayer.handSize() == 1) {
+				unoTargetPlayerId = handler.getPlayerId();
+				Message unoAlert = new Message(Message.MessageType.UNO_BUTTON);
+				unoAlert.put("action", "SHOW");
+				unoAlert.put("targetPlayer", currentPlayer.getName());
+				broadcastMessage(unoAlert);
+			}
+
+			// Actualizar estado para todos (esto ya lo tienes)
+			broadcastStateUpdate();
+
 			// Actualizar estado para todos
 			broadcastStateUpdate();
 		}
@@ -212,16 +225,40 @@ public class GameRoom {
 	 */
 	public void handleUnoButton(ClientHandler handler, Message message) {
 		synchronized (this) {
-			if (!gameStarted || gameEnded) {
-				return;
+			if (!gameStarted || gameEnded || unoTargetPlayerId == null) {
+				return; // Ignorar si no hay una disputa activa
 			}
 
-			Player player = playerMap.get(handler.getPlayerId());
-			if (player != null && player.handSize() == 1) {
-				Message unoMessage = new Message(Message.MessageType.UNO_BUTTON);
-				unoMessage.put("playerName", player.getName());
-				broadcastMessage(unoMessage);
+			String clickerId = handler.getPlayerId();
+			Player clicker = playerMap.get(clickerId);
+			Player target = playerMap.get(unoTargetPlayerId);
+
+			if (target == null || clicker == null) return;
+
+			Message chatMsg = new Message(Message.MessageType.CHAT);
+			chatMsg.put("playerName", "SISTEMA");
+
+			if (clickerId.equals(unoTargetPlayerId)) {
+				// El jugador que tiene 1 carta fue el primero en pulsar (Se salva)
+				chatMsg.put("message", target.getName() + " dijo ¡UNO! a tiempo. ¡Se ha salvado!");
+			} else {
+				// Otro jugador fue más rápido (Penalización)
+				chatMsg.put("message", "¡" + clicker.getName() + " fue más rápido! " + target.getName() + " recibe +2 cartas de penalización.");
+				target.drawCards(gameState.getDeck(), 2);
 			}
+
+			// Mandar mensaje para ocultar el botón de UNO a todos
+			Message hideAlert = new Message(Message.MessageType.UNO_BUTTON);
+			hideAlert.put("action", "HIDE");
+			broadcastMessage(hideAlert);
+
+			// Anunciar el resultado en el chat
+			broadcastMessage(chatMsg);
+
+			// Reiniciar para que no se siga sumando penalizaciones
+			unoTargetPlayerId = null;
+
+			broadcastStateUpdate();
 		}
 	}
 
