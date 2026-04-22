@@ -136,25 +136,35 @@ public class LobbyFrame extends JFrame {
 			}
 		});
 	}
-
 	@SuppressWarnings("unchecked")
 	private void handleLobbyUpdate(Message message) {
+		System.out.println("[LOBBY] handleLobbyUpdate recibido en " + client.getPlayerName());
+
 		List<String> players = (List<String>) message.get("players");
 		Integer connected = message.getInteger("playersConnected");
+		Integer ready = message.getInteger("readyCount");
 		Integer max = message.getInteger("maxPlayers");
+
+		System.out.println("[LOBBY] Players: " + players);
+		System.out.println("[LOBBY] Connected: " + connected);
+		System.out.println("[LOBBY] Ready: " + ready);
+		System.out.println("[LOBBY] Max: " + max);
 
 		if (players != null) {
 			playerListModel.clear();
 
 			// Agregar jugador local primero
 			playerListModel.addElement(client.getPlayerName() + " (TÚ)");
+			System.out.println("[LOBBY] Agregado: " + client.getPlayerName() + " (TÚ)");
 
 			// Agregar otros jugadores
 			for (String player : players) {
 				if (!player.equals(client.getPlayerName())) {
 					playerListModel.addElement(player);
+					System.out.println("[LOBBY] Agregado: " + player);
 				}
 			}
+			System.out.println("[LOBBY] Total en lista: " + playerListModel.size());
 		}
 
 		if (connected != null && max != null) {

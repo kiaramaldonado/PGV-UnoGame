@@ -22,6 +22,7 @@ public class GameRoom {
 	private final String roomId;
 	private final List<ClientHandler> players;
 	private final Map<String, Player> playerMap;
+	private final Set<String> readyPlayers;
 	private GameState gameState;
 	private volatile int currentTurnIndex;
 	private boolean gameStarted;
@@ -31,6 +32,7 @@ public class GameRoom {
 		this.roomId = roomId;
 		this.players = Collections.synchronizedList(new ArrayList<>());
 		this.playerMap = Collections.synchronizedMap(new HashMap<>());
+		this.readyPlayers = Collections.synchronizedSet(new HashSet<>());
 		this.gameStarted = false;
 		this.gameEnded = false;
 	}
@@ -48,8 +50,12 @@ public class GameRoom {
 		playerMap.put(handler.getPlayerId(), new Player(playerName));
 		handler.setGameRoom(this);
 
-		LOGGER.log(Level.INFO, "Jugador " + playerName + " agregado a sala " + roomId + ". Total: " + players.size());
+		LOGGER.log(Level.INFO, "🔵 Jugador " + playerName + " agregado a sala " + roomId + ". Total: " + players.size());
+		LOGGER.log(Level.INFO, "🔵 Jugadores actuales: " + getPlayerNames());
 
+		LOGGER.log(Level.INFO, "🔵 Enviando LOBBY_UPDATE inicial a " + playerName);
+		sendLobbyUpdateToPlayer(handler);
+		LOGGER.log(Level.INFO, "🔵 Haciendo broadcast a todos los jugadores");
 		// Notificar a todos sobre el nuevo jugador
 		broadcastLobbyUpdate();
 
@@ -86,7 +92,7 @@ public class GameRoom {
 	 * Verifica si se debe iniciar el juego (máximo de jugadores alcanzado o timer).
 	 */
 	private void checkGameStart() {
-		if (players.size() >= MAX_PLAYERS) {
+		if (players.size() >= MIN_PLAYERS && readyPlayers.size() == players.size()) {
 			startGame();
 		}
 	}
@@ -208,6 +214,24 @@ public class GameRoom {
 		}
 	}
 
+	private void sendLobbyUpdateToPlayer(ClientHandler handler) {
+		List<String> names = getPlayerNames();
+		LOGGER.log(Level.INFO, "📤 sendLobbyUpdateToPlayer a " + handler.getPlayerName());
+		LOGGER.log(Level.INFO, "📤 Jugadores en sala: " + names);
+		LOGGER.log(Level.INFO, "📤 Total jugadores: " + players.size());
+		LOGGER.log(Level.INFO, "📤 Listos: " + readyPlayers.size());
+
+		Message lobbyMessage = new Message(Message.MessageType.LOBBY_UPDATE);
+		lobbyMessage.put("players", names);
+		lobbyMessage.put("playersConnected", players.size());
+		lobbyMessage.put("readyCount", readyPlayers.size());
+		lobbyMessage.put("maxPlayers", MAX_PLAYERS);
+		lobbyMessage.put("gameStarted", gameStarted);
+
+		boolean sent = handler.sendMessage(lobbyMessage);
+		LOGGER.log(Level.INFO, "📤 Mensaje enviado exitosamente: " + sent);
+	}
+
 	/**
 	 * Transmite un mensaje a todos los jugadores.
 	 */
@@ -249,6 +273,7 @@ public class GameRoom {
 		Message lobbyMessage = new Message(Message.MessageType.LOBBY_UPDATE);
 		lobbyMessage.put("players", getPlayerNames());
 		lobbyMessage.put("playersConnected", players.size());
+		lobbyMessage.put("readyCount", readyPlayers.size());
 		lobbyMessage.put("maxPlayers", MAX_PLAYERS);
 		lobbyMessage.put("gameStarted", gameStarted);
 
@@ -363,5 +388,17 @@ public class GameRoom {
 
 	public boolean isGameEnded() {
 		return gameEnded;
+	}
+
+	public void handlePlayerReady(ClientHandler handler, Message message) {
+		synchronized (this) {
+			if (gameStarted) {
+				return;
+			}
+			readyPlayers.add(handler.getPlayerId());
+			LOGGER.log(Level.INFO, handler.getPlayerName() + " está listo. Ready: " + readyPlayers.size() + "/" + players.size());
+			broadcastLobbyUpdate();
+			checkGameStart();
+		}
 	}
 }

@@ -4,6 +4,8 @@ import net.salesianos.protocol.Message;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +26,7 @@ public class Client {
 	private boolean connected;
 	private MessageListener listener;
 	private Thread receiverThread;
+	private final Queue<Message> messageQueue;
 
 	public interface MessageListener {
 		void onMessageReceived(Message message);
@@ -35,6 +38,7 @@ public class Client {
 		this.serverHost = serverHost;
 		this.serverPort = serverPort;
 		this.connected = false;
+		this.messageQueue = new ConcurrentLinkedQueue<>();
 	}
 
 	/**
@@ -73,18 +77,33 @@ public class Client {
 	 */
 	private void startMessageReceiver() {
 		receiverThread = new Thread(() -> {
+			System.out.println("[CLIENT] Receiver thread iniciado para " + playerName);
+			LOGGER.log(Level.INFO, "[CLIENT] Receiver thread iniciado para " + playerName);
+
 			while (connected) {
 				try {
+					System.out.println("[CLIENT] " + playerName + " - Esperando mensaje...");
 					Message message = (Message) in.readObject();
+					System.out.println("[CLIENT] " + playerName + " - Mensaje recibido: " + message.getType());
+					LOGGER.log(Level.INFO, "[CLIENT] " + playerName + " - Mensaje recibido: " + message.getType());
+
 					if (listener != null) {
+						System.out.println("[CLIENT] " + playerName + " - Listener ACTIVO, procesando inmediatamente");
 						listener.onMessageReceived(message);
+					} else {
+						// Guardar en cola si no hay listener aún
+						messageQueue.add(message);
+						System.out.println("[CLIENT] " + playerName + " - Listener NULL, ENCOLANDO: " + message.getType());
+						LOGGER.log(Level.INFO, "[CLIENT] " + playerName + " - Mensaje encolado: " + message.getType());
 					}
 				} catch (EOFException | ClassNotFoundException e) {
 					// Conexión cerrada normalmente
+					System.out.println("[CLIENT] " + playerName + " - Conexión cerrada");
 					LOGGER.log(Level.INFO, "Conexión cerrada por servidor");
 					break;
 				} catch (IOException e) {
 					if (connected) {
+						System.out.println("[CLIENT] " + playerName + " - Error IO: " + e.getMessage());
 						LOGGER.log(Level.SEVERE, "Error recibiendo mensaje: " + e.getMessage());
 					}
 					break;
@@ -155,7 +174,21 @@ public class Client {
 	}
 
 	public void setMessageListener(MessageListener listener) {
+		System.out.println("[CLIENT] " + playerName + " - setMessageListener() llamado");
+		LOGGER.log(Level.INFO, "[CLIENT] " + playerName + " - setMessageListener() llamado");
+		System.out.println("[CLIENT] " + playerName + " - Mensajes en cola: " + messageQueue.size());
+
 		this.listener = listener;
+
+		// Procesar mensajes que llegaron antes de establecer el listener
+		while (!messageQueue.isEmpty()) {
+			Message message = messageQueue.poll();
+			System.out.println("[CLIENT] " + playerName + " - Procesando mensaje ENCOLADO: " + message.getType());
+			LOGGER.log(Level.INFO, "[CLIENT] " + playerName + " - Procesando mensaje encolado: " + message.getType());
+			javax.swing.SwingUtilities.invokeLater(() -> listener.onMessageReceived(message));
+		}
+
+		System.out.println("[CLIENT] " + playerName + " - setMessageListener() completado. Cola vacía");
 	}
 
 	public boolean isConnected() {

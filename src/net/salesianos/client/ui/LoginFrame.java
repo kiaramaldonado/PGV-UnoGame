@@ -73,7 +73,7 @@ public class LoginFrame extends JFrame {
 		panel.add(new JLabel("Puerto:"), gbc);
 
 		serverPortField = new JTextField(15);
-		serverPortField.setText("5000");
+		serverPortField.setText("8888");
 		gbc.gridx = 1;
 		panel.add(serverPortField, gbc);
 
@@ -133,21 +133,10 @@ public class LoginFrame extends JFrame {
 		try {
 			client = new Client(playerName, serverHost, port);
 
-			// Configurar listener para recibir respuesta del servidor
-			client.setMessageListener(new Client.MessageListener() {
-				@Override
-				public void onMessageReceived(Message message) {
-					handleServerMessage(message);
-				}
-
-				@Override
-				public void onDisconnected() {
-					SwingUtilities.invokeLater(() -> {
-						showError("Conexión perdida con el servidor");
-						connectButton.setEnabled(true);
-					});
-				}
-			});
+			// NO registrar listener aquí - dejar que los mensajes se encolen
+			// para que LobbyFrame los procese luego
+			System.out.println("[LOGIN] Cliente creado para " + playerName);
+			System.out.println("[LOGIN] NO se registra listener - los mensajes se encolaran");
 
 			// Intentar conectar
 			if (client.connect()) {

@@ -92,6 +92,11 @@ public class ClientHandler implements Runnable {
 					gameRoom.handleDrawCard(this, message);
 				}
 				break;
+			case PLAYER_READY:
+				if (gameRoom != null) {
+					gameRoom.handlePlayerReady(this, message);
+				}
+				break;
 			case UNO_BUTTON:
 				if (gameRoom != null) {
 					gameRoom.handleUnoButton(this, message);
@@ -114,7 +119,7 @@ public class ClientHandler implements Runnable {
 		this.playerName = message.getString("playerName");
 		LOGGER.log(Level.INFO, "Jugador autenticado: " + playerName + " (" + playerId + ")");
 
-		// TODO: Aquí se asignará el cliente a una GameRoom
+		server.assignClientToRoom(this);
 	}
 
 	/**

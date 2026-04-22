@@ -67,8 +67,7 @@ public class Server {
 				clientThread.setName("ClientHandler-" + connectedClients.size());
 				clientThread.start();
 
-				// Asignar cliente a una sala disponible
-				assignClientToRoom(handler);
+				// La asignación a sala ocurrirá en ClientHandler.handleLogin()
 
 			} catch (IOException e) {
 				if (running) {
@@ -81,7 +80,7 @@ public class Server {
 	/**
 	 * Asigna un cliente a una sala disponible o crea una nueva.
 	 */
-	private void assignClientToRoom(ClientHandler handler) {
+	public void assignClientToRoom(ClientHandler handler) {
 		synchronized (gameRooms) {
 			// Buscar una sala disponible (no llena, no iniciada)
 			GameRoom availableRoom = null;

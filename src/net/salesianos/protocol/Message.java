@@ -17,6 +17,7 @@ public class Message implements Serializable {
 		LOGIN,           // Jugador se conecta: {playerName, playerId}
 		PLAY_CARD,       // Jugador juega carta: {card, playerId}
 		DRAW_CARD,       // Jugador roba carta: {playerId}
+PLAYER_READY,    // Jugador dice que está listo: {playerId}
 		START_GAME,      // Servidor inicia partida: {players, currentCard}
 		UPDATE_STATE,    // Servidor envía estado: {currentCard, currentPlayer, players, hands}
 		DRAW_PENALTY,    // Servidor penaliza: {playerId, cardCount}
