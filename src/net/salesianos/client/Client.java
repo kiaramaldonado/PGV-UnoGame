@@ -1,6 +1,7 @@
 package net.salesianos.client;
 
 import net.salesianos.protocol.Message;
+import net.salesianos.util.SocketIOHandler;
 
 import java.io.*;
 import java.net.Socket;
@@ -18,8 +19,7 @@ public class Client {
 	private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
 	private Socket socket;
-	private ObjectOutputStream out;
-	private ObjectInputStream in;
+	private SocketIOHandler ioHandler;
 	private String playerName;
 	private String serverHost;
 	private int serverPort;
@@ -48,11 +48,9 @@ public class Client {
 		try {
 			socket = new Socket(serverHost, serverPort);
 
-			// ObjectOutputStream debe crearse antes que ObjectInputStream
-			out = new ObjectOutputStream(socket.getOutputStream());
-			out.flush();
+			// Use centralized SocketIOHandler
+			ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
 
-			in = new ObjectInputStream(socket.getInputStream());
 
 			connected = true;
 			LOGGER.log(Level.INFO, "Conectado al servidor " + serverHost + ":" + serverPort);
@@ -83,7 +81,7 @@ public class Client {
 			while (connected) {
 				try {
 					System.out.println("[CLIENT] " + playerName + " - Esperando mensaje...");
-					Message message = (Message) in.readObject();
+					Message message = ioHandler.receiveMessage();
 					System.out.println("[CLIENT] " + playerName + " - Mensaje recibido: " + message.getType());
 					LOGGER.log(Level.INFO, "[CLIENT] " + playerName + " - Mensaje recibido: " + message.getType());
 
@@ -122,20 +120,12 @@ public class Client {
 	 * Envía un mensaje al servidor.
 	 */
 	public synchronized boolean sendMessage(Message message) {
-		if (!connected || out == null) {
+		if (!connected || ioHandler == null) {
 			LOGGER.log(Level.WARNING, "No hay conexión al servidor");
 			return false;
 		}
 
-		try {
-			out.writeObject(message);
-			out.flush();
-			return true;
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, "Error enviando mensaje: " + e.getMessage());
-			disconnect();
-			return false;
-		}
+		return ioHandler.sendMessage(message);
 	}
 
 	/**
@@ -158,8 +148,7 @@ public class Client {
 		connected = false;
 
 		try {
-			if (in != null) in.close();
-			if (out != null) out.close();
+			if (ioHandler != null) ioHandler.close();
 			if (socket != null && !socket.isClosed()) {
 				socket.close();
 			}

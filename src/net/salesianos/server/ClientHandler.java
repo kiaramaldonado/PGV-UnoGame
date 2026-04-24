@@ -1,6 +1,7 @@
 package net.salesianos.server;
 
 import net.salesianos.protocol.Message;
+import net.salesianos.util.SocketIOHandler;
 
 import java.io.*;
 import java.net.Socket;
@@ -17,11 +18,11 @@ public class ClientHandler implements Runnable {
 
 	private final Socket socket;
 	private final Server server;
-	private ObjectOutputStream out;
-	private ObjectInputStream in;
+	private SocketIOHandler ioHandler;
 	private String playerName;
 	private String playerId;
 	private GameRoom gameRoom;
+	private GameMessageHandler gameMessageHandler;
 	private boolean running;
 
 	public ClientHandler(Socket socket, Server server) {
@@ -44,18 +45,15 @@ public class ClientHandler implements Runnable {
 	@Override
 	public void run() {
 		try {
-			// ObjectOutputStream debe crearse antes que ObjectInputStream
-			out = new ObjectOutputStream(socket.getOutputStream());
-			out.flush();
-
-			in = new ObjectInputStream(socket.getInputStream());
+			// Use centralized SocketIOHandler
+			ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
 
 			LOGGER.log(Level.INFO, "ClientHandler iniciado para " + socket.getInetAddress());
 
 			// Bucle de recepción de mensajes
 			while (running) {
 				try {
-					Message message = (Message) in.readObject();
+					Message message = ioHandler.receiveMessage();
 					handleMessage(message);
 				} catch (EOFException e) {
 					LOGGER.log(Level.INFO, "Cliente desconectado normalmente");
@@ -82,33 +80,14 @@ public class ClientHandler implements Runnable {
 			case LOGIN:
 				handleLogin(message);
 				break;
-			case PLAY_CARD:
-				if (gameRoom != null) {
-					gameRoom.handlePlayCard(this, message);
-				}
-				break;
-			case DRAW_CARD:
-				if (gameRoom != null) {
-					gameRoom.handleDrawCard(this, message);
-				}
-				break;
-			case PLAYER_READY:
-				if (gameRoom != null) {
-					gameRoom.handlePlayerReady(this, message);
-				}
-				break;
-			case UNO_BUTTON:
-				if (gameRoom != null) {
-					gameRoom.handleUnoButton(this, message);
-				}
-				break;
-			case CHAT:
-				if (gameRoom != null) {
-					gameRoom.broadcastMessage(message);
-				}
-				break;
 			default:
-				LOGGER.log(Level.WARNING, "Tipo de mensaje no manejado: " + message.getType());
+				// Delegate game messages to specialized handler
+				if (gameMessageHandler != null) {
+					gameMessageHandler.handle(message);
+				} else {
+					LOGGER.log(Level.WARNING, "Game message handler not initialized: " + message.getType());
+				}
+				break;
 		}
 	}
 
@@ -126,18 +105,11 @@ public class ClientHandler implements Runnable {
 	 * Envía un mensaje al cliente.
 	 */
 	public synchronized boolean sendMessage(Message message) {
-		if (out == null || !socket.isConnected()) {
+		if (ioHandler == null || !socket.isConnected()) {
 			return false;
 		}
 
-		try {
-			out.writeObject(message);
-			out.flush();
-			return true;
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, "Error enviando mensaje a " + playerName + ": " + e.getMessage());
-			return false;
-		}
+		return ioHandler.sendMessage(message);
 	}
 
 	/**
@@ -147,8 +119,7 @@ public class ClientHandler implements Runnable {
 		running = false;
 
 		try {
-			if (in != null) in.close();
-			if (out != null) out.close();
+			if (ioHandler != null) ioHandler.close();
 			if (socket != null && !socket.isClosed()) {
 				socket.close();
 			}
@@ -174,6 +145,8 @@ public class ClientHandler implements Runnable {
 
 	public void setGameRoom(GameRoom gameRoom) {
 		this.gameRoom = gameRoom;
+		// Initialize game message handler when assigned to a room
+		this.gameMessageHandler = new GameMessageHandler(gameRoom, this);
 	}
 
 	public GameRoom getGameRoom() {
