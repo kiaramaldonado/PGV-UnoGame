@@ -2,7 +2,7 @@ package net.salesianos.client.ui.components;
 
 import java.awt.*;
 
-public class UIUtils {
+public class ColorUtils {
 
     public static final Color[] PLAYER_COLORS = {
             new Color(0, 102, 204),   // Azul
@@ -12,7 +12,6 @@ public class UIUtils {
     };
 
     public static Color getColorForPlayer(String playerName) {
-        // Limpiamos la etiqueta " (TÚ)" por si acaso viene del Lobby
         String cleanName = playerName.replace(" (TÚ)", "");
         int colorIndex = Math.abs(cleanName.hashCode()) % PLAYER_COLORS.length;
         return PLAYER_COLORS[colorIndex];

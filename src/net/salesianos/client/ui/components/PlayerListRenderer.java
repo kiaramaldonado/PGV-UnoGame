@@ -22,7 +22,7 @@ public class PlayerListRenderer extends DefaultListCellRenderer {
         }
 
         // Obtener el color asignado a este jugador
-        Color playerColor = UIUtils.getColorForPlayer(playerName);
+        Color playerColor = ColorUtils.getColorForPlayer(playerName);
 
         // Crear y asignar el icono circular
         label.setIcon(createCircleIcon(playerColor, 18));
