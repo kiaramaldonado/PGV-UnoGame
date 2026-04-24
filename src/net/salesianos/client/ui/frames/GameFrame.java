@@ -1,6 +1,8 @@
-package net.salesianos.client.ui;
+package net.salesianos.client.ui.frames;
 
 import net.salesianos.client.Client;
+import net.salesianos.client.handlers.GameChatHandler;
+import net.salesianos.client.handlers.GameStateUpdateHandler;
 import net.salesianos.client.ui.components.CardButton;
 import net.salesianos.client.ui.components.GameButton;
 import net.salesianos.client.ui.components.GameUIComponentFactory;

@@ -1,4 +1,4 @@
-package net.salesianos.client.ui;
+package net.salesianos.client.ui.frames;
 
 import net.salesianos.client.ui.components.GameButton;
 

@@ -3,6 +3,7 @@ package net.salesianos.server;
 import net.salesianos.model.Card;
 import net.salesianos.model.Player;
 import net.salesianos.protocol.Message;
+import net.salesianos.server.handlers.ClientHandler;
 
 import java.util.HashMap;
 import java.util.List;

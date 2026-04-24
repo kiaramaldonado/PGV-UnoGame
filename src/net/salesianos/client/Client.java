@@ -1,7 +1,7 @@
 package net.salesianos.client;
 
 import net.salesianos.protocol.Message;
-import net.salesianos.util.SocketIOHandler;
+import net.salesianos.utils.SocketIOHandler;
 
 import java.io.EOFException;
 import java.io.IOException;

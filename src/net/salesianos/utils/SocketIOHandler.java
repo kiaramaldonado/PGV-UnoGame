@@ -1,4 +1,4 @@
-package net.salesianos.util;
+package net.salesianos.utils;
 
 import net.salesianos.protocol.Message;
 

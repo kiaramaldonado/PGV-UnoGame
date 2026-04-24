@@ -1,7 +1,9 @@
-package net.salesianos.server;
+package net.salesianos.server.handlers;
 
 import net.salesianos.protocol.Message;
-import net.salesianos.util.SocketIOHandler;
+import net.salesianos.server.GameRoom;
+import net.salesianos.server.Server;
+import net.salesianos.utils.SocketIOHandler;
 
 import java.io.EOFException;
 import java.io.IOException;

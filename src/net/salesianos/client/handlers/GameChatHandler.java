@@ -1,4 +1,4 @@
-package net.salesianos.client.ui;
+package net.salesianos.client.handlers;
 
 import net.salesianos.client.Client;
 import net.salesianos.protocol.Message;

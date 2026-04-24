@@ -1,5 +1,5 @@
 import net.salesianos.client.Client;
-import net.salesianos.client.ui.*;
+import net.salesianos.client.ui.frames.*;
 import net.salesianos.server.Server;
 
 import javax.swing.*;

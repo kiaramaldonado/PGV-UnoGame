@@ -1,9 +1,9 @@
-package net.salesianos.client.ui;
+package net.salesianos.client.handlers;
 
 import net.salesianos.client.Client;
 import net.salesianos.model.Card;
 import net.salesianos.protocol.Message;
-import net.salesianos.util.CardParser;
+import net.salesianos.utils.CardParser;
 
 import java.util.List;
 import java.util.Map;

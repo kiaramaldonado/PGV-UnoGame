@@ -1,6 +1,7 @@
-package net.salesianos.server;
+package net.salesianos.server.handlers;
 
 import net.salesianos.protocol.Message;
+import net.salesianos.server.GameRoom;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

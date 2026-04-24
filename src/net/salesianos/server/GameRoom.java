@@ -4,7 +4,8 @@ import net.salesianos.model.Card;
 import net.salesianos.model.GameState;
 import net.salesianos.model.Player;
 import net.salesianos.protocol.Message;
-import net.salesianos.util.CardParser;
+import net.salesianos.server.handlers.ClientHandler;
+import net.salesianos.utils.CardParser;
 
 import java.util.*;
 import java.util.logging.Level;

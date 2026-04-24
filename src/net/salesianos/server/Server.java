@@ -1,5 +1,7 @@
 package net.salesianos.server;
 
+import net.salesianos.server.handlers.ClientHandler;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

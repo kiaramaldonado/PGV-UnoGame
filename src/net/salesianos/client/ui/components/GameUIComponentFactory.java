@@ -1,7 +1,7 @@
 package net.salesianos.client.ui.components;
 
 import net.salesianos.model.Card;
-import net.salesianos.util.CardParser;
+import net.salesianos.utils.CardParser;
 
 import javax.swing.*;
 import java.awt.*;
