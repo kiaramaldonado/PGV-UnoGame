@@ -3,18 +3,16 @@ package net.salesianos.client.ui;
 import net.salesianos.client.Client;
 import net.salesianos.client.ui.components.CardButton;
 import net.salesianos.client.ui.components.GameButton;
-import net.salesianos.client.ui.components.UIUtils;
+import net.salesianos.client.ui.components.GameUIComponentFactory;
 import net.salesianos.model.Card;
 import net.salesianos.protocol.Message;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -25,8 +23,12 @@ public class GameFrame extends JFrame {
 
 	private static final Logger LOGGER = Logger.getLogger(GameFrame.class.getName());
 
-	private Client client;
+	private final Client client;
 	private GameListener listener;
+
+	// Handlers for separated responsibilities
+	private GameStateUpdateHandler stateUpdateHandler;
+	private GameChatHandler chatHandler;
 
 	// Componentes UI
 	private JPanel handPanel;
@@ -43,12 +45,6 @@ public class GameFrame extends JFrame {
 	private List<CardButton> cardButtons;
 	private CardButton selectedCard;
 
-	// Estado del juego
-	private List<String> playerHand;
-	private String currentCard;
-	private String currentPlayer;
-	private int direction;
-
 	public interface GameListener {
 		void onGameEnd();
 		void onDisconnected();
@@ -57,19 +53,69 @@ public class GameFrame extends JFrame {
 	public GameFrame(Client client) {
 		this.client = client;
 		this.cardButtons = new ArrayList<>();
-		this.playerHand = new ArrayList<>();
 
 		setTitle("UNO - En juego");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(1200, 750); // Un poco más alto para dar espacio a las cartas
+		setSize(1200, 750);
 		setLocationRelativeTo(null);
 		setResizable(false);
 
 		initComponents();
+		setupHandlers();
 		setupClientListener();
 	}
 
+	/**
+	 * Initialize specialized handlers for separated concerns.
+	 */
+	private void setupHandlers() {
+		chatHandler = new GameChatHandler(chatArea, chatInput, client);
+
+		stateUpdateHandler = new GameStateUpdateHandler(client, new GameStateUpdateHandler.Listener() {
+			@Override
+			public void onStateUpdated(GameStateUpdateHandler state) {
+				updateDrawPileState();
+			}
+
+			@Override
+			public void onPlayerHandUpdated(List<String> hand) {
+				updatePlayerHand(hand);
+			}
+
+			@Override
+			public void onPlayersListUpdated(List<Map<String, Object>> players) {
+				updatePlayersList(players);
+			}
+
+			@Override
+			public void onCurrentCardUpdated(String cardStr) {
+				updateCenterCard(cardStr);
+			}
+
+			@Override
+			public void onCurrentPlayerChanged(String playerName, boolean isMyTurn) {
+				updateCurrentPlayerUI(playerName, isMyTurn);
+			}
+
+			@Override
+			public void onDirectionChanged(int direction) {
+				updateDirectionUI(direction);
+			}
+		});
+	}
+
+	private void updateDrawPileState() {
+		boolean isMyTurn = stateUpdateHandler.getCurrentPlayer().equals(client.getPlayerName());
+		drawPileButton.setEnabled(isMyTurn);
+		if (isMyTurn) {
+			drawPileButton.setBorder(BorderFactory.createLineBorder(new Color(100, 255, 100), 4, true));
+		} else {
+			drawPileButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 4, true));
+		}
+	}
+
 	private void initComponents() {
+		// ...existing code...
 		// Fondo general
 		getContentPane().setBackground(new Color(45, 45, 45));
 		setLayout(new BorderLayout(10, 10));
@@ -233,32 +279,7 @@ public class GameFrame extends JFrame {
 	 * Crea el mazo de robar usando la imagen real del reverso de la carta.
 	 */
 	private JButton createDrawPileButton() {
-		JButton btn = new JButton();
-		btn.setPreferredSize(new Dimension(120, 180));
-
-		btn.setContentAreaFilled(false);
-		btn.setFocusPainted(false);
-		btn.setBorderPainted(false);
-
-		try {
-			URL cardBackUrl = getClass().getResource("/assets/uno-card.png");
-			if (cardBackUrl != null) {
-				ImageIcon icon = new ImageIcon(cardBackUrl);
-				Image img = icon.getImage().getScaledInstance(120, 180, Image.SCALE_SMOOTH);
-				btn.setIcon(new ImageIcon(img));
-			} else {
-				btn.setBackground(new Color(228, 30, 38));
-				btn.setOpaque(true);
-				btn.setText("UNO");
-				btn.setForeground(Color.WHITE);
-				btn.setFont(new Font("Arial", Font.BOLD, 30));
-			}
-		} catch (Exception e) {
-			System.out.println("No se pudo cargar la imagen del mazo: " + e.getMessage());
-		}
-
-		btn.addActionListener(e -> drawCard());
-		return btn;
+		return GameUIComponentFactory.createDrawPileButton(this::drawCard);
 	}
 
 	private void setupClientListener() {
@@ -323,51 +344,8 @@ public class GameFrame extends JFrame {
 
 	@SuppressWarnings("unchecked")
 	private void updateGameState(Message message) {
-		currentCard = message.getString("currentCard");
-		currentPlayer = message.getString("currentPlayer");
-		direction = message.getInteger("direction");
-
-		Card centerCard = parseCard(currentCard);
-		discardPileContainer.removeAll();
-		if (centerCard != null) {
-			CardButton centerBtn = new CardButton(centerCard, e -> {});
-			centerBtn.setCursor(Cursor.getDefaultCursor());
-			discardPileContainer.add(centerBtn, BorderLayout.CENTER);
-		}
-		discardPileContainer.revalidate();
-		discardPileContainer.repaint();
-
-		// Actualizar UI del turno actual
-		boolean isMyTurn = currentPlayer.equals(client.getPlayerName());
-		if (isMyTurn) {
-			currentPlayerLabel.setText("¡ES TU TURNO!");
-			currentPlayerLabel.setForeground(new Color(100, 255, 100));
-		} else {
-			currentPlayerLabel.setText("Turno de: " + currentPlayer);
-			currentPlayerLabel.setForeground(Color.WHITE);
-		}
-
-		directionLabel.setText(direction == 1 ? "⟳" : "⟲");
-
-		// Actualizar la mano del jugador
-		List<String> hand = (List<String>) message.get("hand");
-		if (hand != null) {
-			updatePlayerHand(hand);
-		}
-
-		// Actualizar lista de jugadores
-		List<Map<String, Object>> players = (List<Map<String, Object>>) message.get("players");
-		if (players != null) {
-			updatePlayersList(players);
-		}
-
-		// Actualizar disponibilidad del mazo de robar
-		drawPileButton.setEnabled(isMyTurn);
-		if(isMyTurn) {
-			drawPileButton.setBorder(BorderFactory.createLineBorder(new Color(100, 255, 100), 4, true)); // Brillo verde si es tu turno
-		} else {
-			drawPileButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 4, true));
-		}
+		// Use specialized handler for state updates
+		stateUpdateHandler.updateFromMessage(message);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -376,24 +354,42 @@ public class GameFrame extends JFrame {
 		cardButtons.clear();
 		selectedCard = null;
 
-		playerHand = hand;
-
-		for (String cardStr : hand) {
-			Card card = parseCard(cardStr);
-			if (card != null) {
-				CardButton[] cardButtonRef = new CardButton[1];
-				cardButtonRef[0] = new CardButton(card, e -> selectCard(cardButtonRef[0]));
-				cardButtons.add(cardButtonRef[0]);
-				handPanel.add(cardButtonRef[0]);
-			}
+		cardButtons = GameUIComponentFactory.createCardButtons(hand, this::selectCard);
+		for (CardButton btn : cardButtons) {
+			handPanel.add(btn);
 		}
 
 		handPanel.revalidate();
 		handPanel.repaint();
 	}
 
+	private void updateCenterCard(String cardStr) {
+		discardPileContainer.removeAll();
+		CardButton centerBtn = GameUIComponentFactory.createCenterCardButton(cardStr);
+		if (centerBtn != null) {
+			discardPileContainer.add(centerBtn, BorderLayout.CENTER);
+		}
+		discardPileContainer.revalidate();
+		discardPileContainer.repaint();
+	}
+
+	private void updateCurrentPlayerUI(String playerName, boolean isMyTurn) {
+		if (isMyTurn) {
+			currentPlayerLabel.setText("¡ES TU TURNO!");
+			currentPlayerLabel.setForeground(new Color(100, 255, 100));
+		} else {
+			currentPlayerLabel.setText("Turno de: " + playerName);
+			currentPlayerLabel.setForeground(Color.WHITE);
+		}
+	}
+
+	private void updateDirectionUI(int direction) {
+		directionLabel.setText(direction == 1 ? "⟳" : "⟲");
+	}
+
 	private void updatePlayersList(List<Map<String, Object>> players) {
 		playersListModel.clear();
+		String currentPlayer = stateUpdateHandler.getCurrentPlayer();
 		for (Map<String, Object> playerInfo : players) {
 			String name = (String) playerInfo.get("name");
 			Integer handSize = (Integer) playerInfo.get("handSize");
@@ -405,7 +401,7 @@ public class GameFrame extends JFrame {
 
 	private void selectCard(CardButton cardButton) {
 		// Solo puedes seleccionar si es tu turno
-		if (!currentPlayer.equals(client.getPlayerName())) {
+		if (!stateUpdateHandler.getCurrentPlayer().equals(client.getPlayerName())) {
 			return;
 		}
 
@@ -436,19 +432,11 @@ public class GameFrame extends JFrame {
 	}
 
 	private void sendChat() {
-		String message = chatInput.getText().trim();
-		if (!message.isEmpty()) {
-			Message chatMessage = new Message(Message.MessageType.CHAT);
-			chatMessage.put("playerName", client.getPlayerName());
-			chatMessage.put("message", message);
-			client.sendMessage(chatMessage);
-			chatInput.setText("");
-		}
+		chatHandler.sendMessage();
 	}
 
 	private void addChatMessage(String message) {
-		chatArea.append(message + "\n");
-		chatArea.setCaretPosition(chatArea.getDocument().getLength());
+		chatHandler.addMessage(message);
 	}
 
 	private void handleGameOver(Message message) {
@@ -496,26 +484,6 @@ public class GameFrame extends JFrame {
 		if (unoDialog != null) {
 			unoDialog.dispose();
 			unoDialog = null;
-		}
-	}
-
-	private Card parseCard(String cardStr) {
-		if (cardStr == null || !cardStr.contains("-")) {
-			return null;
-		}
-
-		String[] parts = cardStr.split("-");
-		if (parts.length != 2) {
-			return null;
-		}
-
-		try {
-			Card.Color color = Card.Color.valueOf(parts[0]);
-			Card.Value value = Card.Value.valueOf(parts[1]);
-			return new Card(color, value);
-		} catch (IllegalArgumentException e) {
-			LOGGER.log(Level.WARNING, "Carta inválida: " + cardStr);
-			return null;
 		}
 	}
 
