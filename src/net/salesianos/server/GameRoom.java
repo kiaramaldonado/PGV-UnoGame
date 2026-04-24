@@ -2,6 +2,7 @@ package net.salesianos.server;
 
 import net.salesianos.model.*;
 import net.salesianos.protocol.Message;
+import net.salesianos.util.CardParser;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -23,6 +24,7 @@ public class GameRoom {
 	private final List<ClientHandler> players;
 	private final Map<String, Player> playerMap;
 	private final Set<String> readyPlayers;
+	private final GameRoomBroadcaster broadcaster;
 	private GameState gameState;
 	private volatile int currentTurnIndex;
 	private boolean gameStarted;
@@ -34,6 +36,7 @@ public class GameRoom {
 		this.players = Collections.synchronizedList(new ArrayList<>());
 		this.playerMap = Collections.synchronizedMap(new HashMap<>());
 		this.readyPlayers = Collections.synchronizedSet(new HashSet<>());
+		this.broadcaster = new GameRoomBroadcaster(this.players);
 		this.gameStarted = false;
 		this.gameEnded = false;
 	}
@@ -55,7 +58,7 @@ public class GameRoom {
 		LOGGER.log(Level.INFO, "🔵 Jugadores actuales: " + getPlayerNames());
 
 		LOGGER.log(Level.INFO, "🔵 Enviando LOBBY_UPDATE inicial a " + playerName);
-		sendLobbyUpdateToPlayer(handler);
+		broadcaster.sendLobbyUpdateToPlayer(handler, getPlayerNames(), readyPlayers.size(), MAX_PLAYERS, gameStarted);
 		LOGGER.log(Level.INFO, "🔵 Haciendo broadcast a todos los jugadores");
 		// Notificar a todos sobre el nuevo jugador
 		broadcastLobbyUpdate();
@@ -132,7 +135,7 @@ public class GameRoom {
 		startMessage.put("players", getPlayerNames());
 		startMessage.put("currentCard", gameState.getCurrentCard().toString());
 		startMessage.put("currentPlayer", gameState.getCurrentPlayer().getName());
-		broadcastMessage(startMessage);
+		broadcaster.broadcastMessage(startMessage);
 
 		// Pausa para permitir que los clientes abran GameFrame antes de recibir su mano
 		try {
@@ -154,26 +157,26 @@ public class GameRoom {
 			}
 
 			if (!isPlayerTurn(handler)) {
-				sendError(handler, "No es tu turno");
+				broadcaster.sendErrorToPlayer(handler, "No es tu turno");
 				return;
 			}
 
 			String cardStr = message.getString("card");
-			Card card = parseCard(cardStr);
+			Card card = CardParser.parseCard(cardStr);
 
 			if (card == null) {
-				sendError(handler, "Carta inválida");
+				broadcaster.sendErrorToPlayer(handler, "Carta inválida");
 				return;
 			}
 
 			Player currentPlayer = gameState.getCurrentPlayer();
 			if (!currentPlayer.hasCard(card)) {
-				sendError(handler, "No tienes esa carta");
+				broadcaster.sendErrorToPlayer(handler, "No tienes esa carta");
 				return;
 			}
 
 			if (!gameState.playCurrentPlayerCard(card)) {
-				sendError(handler, "No puedes jugar esa carta");
+				broadcaster.sendErrorToPlayer(handler, "No puedes jugar esa carta");
 				return;
 			}
 
@@ -191,11 +194,8 @@ public class GameRoom {
 				Message unoAlert = new Message(Message.MessageType.UNO_BUTTON);
 				unoAlert.put("action", "SHOW");
 				unoAlert.put("targetPlayer", currentPlayer.getName());
-				broadcastMessage(unoAlert);
+				broadcaster.broadcastMessage(unoAlert);
 			}
-
-			// Actualizar estado para todos (esto ya lo tienes)
-			broadcastStateUpdate();
 
 			// Actualizar estado para todos
 			broadcastStateUpdate();
@@ -212,7 +212,7 @@ public class GameRoom {
 			}
 
 			if (!isPlayerTurn(handler)) {
-				sendError(handler, "No es tu turno");
+				broadcaster.sendErrorToPlayer(handler, "No es tu turno");
 				return;
 			}
 
@@ -257,10 +257,10 @@ public class GameRoom {
 			// Mandar mensaje para ocultar el botón de UNO a todos
 			Message hideAlert = new Message(Message.MessageType.UNO_BUTTON);
 			hideAlert.put("action", "HIDE");
-			broadcastMessage(hideAlert);
+			broadcaster.broadcastMessage(hideAlert);
 
 			// Anunciar el resultado en el chat
-			broadcastMessage(chatMsg);
+			broadcaster.broadcastMessage(chatMsg);
 
 			// Reiniciar para que no se siga sumando penalizaciones
 			unoTargetPlayerId = null;
@@ -269,70 +269,30 @@ public class GameRoom {
 		}
 	}
 
-	private void sendLobbyUpdateToPlayer(ClientHandler handler) {
-		List<String> names = getPlayerNames();
-		LOGGER.log(Level.INFO, "📤 sendLobbyUpdateToPlayer a " + handler.getPlayerName());
-		LOGGER.log(Level.INFO, "📤 Jugadores en sala: " + names);
-		LOGGER.log(Level.INFO, "📤 Total jugadores: " + players.size());
-		LOGGER.log(Level.INFO, "📤 Listos: " + readyPlayers.size());
-
-		Message lobbyMessage = new Message(Message.MessageType.LOBBY_UPDATE);
-		lobbyMessage.put("players", names);
-		lobbyMessage.put("playersConnected", players.size());
-		lobbyMessage.put("readyCount", readyPlayers.size());
-		lobbyMessage.put("maxPlayers", MAX_PLAYERS);
-		lobbyMessage.put("gameStarted", gameStarted);
-
-		boolean sent = handler.sendMessage(lobbyMessage);
-		LOGGER.log(Level.INFO, "📤 Mensaje enviado exitosamente: " + sent);
-	}
-
 	/**
 	 * Transmite un mensaje a todos los jugadores.
 	 */
 	public void broadcastMessage(Message message) {
-		for (ClientHandler handler : players) {
-			handler.sendMessage(message);
-		}
+		broadcaster.broadcastMessage(message);
 	}
 
 	/**
 	 * Transmite actualización de estado a todos los jugadores.
 	 */
 	private void broadcastStateUpdate() {
-		Message updateMessage = new Message(Message.MessageType.UPDATE_STATE);
-		updateMessage.put("currentCard", gameState.getCurrentCard().toString());
-		updateMessage.put("currentPlayer", gameState.getCurrentPlayer().getName());
-		updateMessage.put("direction", gameState.getDirection());
-		updateMessage.put("players", getPlayerInfo());
-
-		for (int i = 0; i < players.size(); i++) {
-			ClientHandler handler = players.get(i);
-			Player player = gameState.getPlayers().get(i);
-
-			Message playerMessage = new Message(Message.MessageType.UPDATE_STATE);
-			playerMessage.put("currentCard", gameState.getCurrentCard().toString());
-			playerMessage.put("currentPlayer", gameState.getCurrentPlayer().getName());
-			playerMessage.put("direction", gameState.getDirection());
-			playerMessage.put("hand", getCardStrings(player.getHand()));
-			playerMessage.put("players", getPlayerInfo());
-
-			handler.sendMessage(playerMessage);
-		}
+		broadcaster.broadcastStateUpdate(
+				gameState.getCurrentCard().toString(),
+				gameState.getCurrentPlayer().getName(),
+				gameState.getDirection(),
+				gameState.getPlayers()
+		);
 	}
 
 	/**
 	 * Transmite actualización de lobby.
 	 */
 	private void broadcastLobbyUpdate() {
-		Message lobbyMessage = new Message(Message.MessageType.LOBBY_UPDATE);
-		lobbyMessage.put("players", getPlayerNames());
-		lobbyMessage.put("playersConnected", players.size());
-		lobbyMessage.put("readyCount", readyPlayers.size());
-		lobbyMessage.put("maxPlayers", MAX_PLAYERS);
-		lobbyMessage.put("gameStarted", gameStarted);
-
-		broadcastMessage(lobbyMessage);
+		broadcaster.broadcastLobbyUpdate(getPlayerNames(), readyPlayers.size(), MAX_PLAYERS, gameStarted);
 	}
 
 	/**
@@ -345,7 +305,7 @@ public class GameRoom {
 		gameOverMessage.put("winnerId", winner.getName());
 		gameOverMessage.put("winnerName", winner.getName());
 
-		broadcastMessage(gameOverMessage);
+		broadcaster.broadcastMessage(gameOverMessage);
 
 		LOGGER.log(Level.INFO, winner.getName() + " ha ganado la partida en sala " + roomId);
 	}
@@ -355,11 +315,7 @@ public class GameRoom {
 	 */
 	private void endGame() {
 		gameEnded = true;
-
-		Message errorMessage = new Message(Message.MessageType.ERROR);
-		errorMessage.put("errorMessage", "La partida ha terminado por desconexión de jugadores");
-
-		broadcastMessage(errorMessage);
+		broadcaster.broadcastError("La partida ha terminado por desconexión de jugadores");
 	}
 
 	/**
@@ -371,36 +327,6 @@ public class GameRoom {
 		return currentPlayer.equals(clientPlayer);
 	}
 
-	/**
-	 * Envía un error específico a un cliente.
-	 */
-	private void sendError(ClientHandler handler, String errorMessage) {
-		Message error = new Message(Message.MessageType.ERROR);
-		error.put("errorMessage", errorMessage);
-		handler.sendMessage(error);
-	}
-
-	/**
-	 * Convierte una carta a string.
-	 */
-	private Card parseCard(String cardStr) {
-		if (cardStr == null || !cardStr.contains("-")) {
-			return null;
-		}
-
-		String[] parts = cardStr.split("-");
-		if (parts.length != 2) {
-			return null;
-		}
-
-		try {
-			Card.Color color = Card.Color.valueOf(parts[0]);
-			Card.Value value = Card.Value.valueOf(parts[1]);
-			return new Card(color, value);
-		} catch (IllegalArgumentException e) {
-			return null;
-		}
-	}
 
 	private List<String> getPlayerNames() {
 		return gameState != null ?
@@ -410,23 +336,6 @@ public class GameRoom {
 			players.stream()
 				.map(ClientHandler::getPlayerName)
 				.collect(Collectors.toList());
-	}
-
-	private List<Map<String, Object>> getPlayerInfo() {
-		return gameState.getPlayers().stream()
-			.map(p -> {
-				Map<String, Object> info = new HashMap<>();
-				info.put("name", p.getName());
-				info.put("handSize", p.handSize());
-				return info;
-			})
-			.collect(Collectors.toList());
-	}
-
-	private List<String> getCardStrings(List<Card> cards) {
-		return cards.stream()
-			.map(Card::toString)
-			.collect(Collectors.toList());
 	}
 
 	public String getRoomId() {
