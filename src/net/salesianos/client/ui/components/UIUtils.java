@@ -1,6 +1,6 @@
 package net.salesianos.client.ui.components;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class UIUtils {
 

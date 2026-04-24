@@ -2,7 +2,6 @@ package net.salesianos.client.ui;
 
 import net.salesianos.client.Client;
 import net.salesianos.client.ui.components.GameButton;
-import net.salesianos.client.ui.components.UIUtils;
 import net.salesianos.client.ui.components.PlayerListRenderer;
 import net.salesianos.protocol.Message;
 
@@ -17,202 +16,203 @@ import java.util.logging.Logger;
  */
 public class LobbyFrame extends JFrame {
 
-	private static final Logger LOGGER = Logger.getLogger(LobbyFrame.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LobbyFrame.class.getName());
 
-	private Client client;
-	private JLabel playersLabel;
-	private JLabel waitingLabel;
-	private GameButton readyButton;
-	private GameButton cancelButton;
-	private DefaultListModel<String> playerListModel;
-	private JList<String> playerList;
-	private LobbyListener listener;
-	private int playersConnected;
-	private int maxPlayers;
+    private Client client;
+    private JLabel playersLabel;
+    private JLabel waitingLabel;
+    private GameButton readyButton;
+    private GameButton cancelButton;
+    private DefaultListModel<String> playerListModel;
+    private JList<String> playerList;
+    private LobbyListener listener;
+    private int playersConnected;
+    private int maxPlayers;
 
-	public interface LobbyListener {
-		void onGameStart();
-		void onCancelLobby();
-	}
+    public interface LobbyListener {
+        void onGameStart();
 
-	public LobbyFrame(Client client) {
-		this.client = client;
+        void onCancelLobby();
+    }
 
-		setTitle("UNO - Sala de Espera");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(500, 550);
-		setLocationRelativeTo(null);
-		setResizable(false);
+    public LobbyFrame(Client client) {
+        this.client = client;
 
-		initComponents();
-		setupClientListener();
-	}
+        setTitle("UNO - Sala de Espera");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 550);
+        setLocationRelativeTo(null);
+        setResizable(false);
 
-	private void initComponents() {
-		// Fondo principal
-		getContentPane().setBackground(new Color(45, 45, 45));
-		setLayout(new BorderLayout(20, 20));
+        initComponents();
+        setupClientListener();
+    }
 
-		JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
-		mainPanel.setOpaque(false);
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+    private void initComponents() {
+        // Fondo principal
+        getContentPane().setBackground(new Color(45, 45, 45));
+        setLayout(new BorderLayout(20, 20));
 
-		// --- PANEL SUPERIOR: INFORMACIÓN ---
-		JPanel infoPanel = new JPanel(new GridLayout(3, 1, 0, 5));
-		infoPanel.setOpaque(false);
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setOpaque(false);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-		JLabel titleLabel = new JLabel("SALA DE ESPERA", SwingConstants.CENTER);
-		titleLabel.setForeground(Color.WHITE);
-		titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
-		infoPanel.add(titleLabel);
+        // --- PANEL SUPERIOR: INFORMACIÓN ---
+        JPanel infoPanel = new JPanel(new GridLayout(3, 1, 0, 5));
+        infoPanel.setOpaque(false);
 
-		playersLabel = new JLabel("Jugadores: 1/4", SwingConstants.CENTER);
-		playersLabel.setForeground(Color.WHITE);
-		playersLabel.setFont(new Font("Consolas", Font.BOLD, 18));
-		infoPanel.add(playersLabel);
+        JLabel titleLabel = new JLabel("SALA DE ESPERA", SwingConstants.CENTER);
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        infoPanel.add(titleLabel);
 
-		waitingLabel = new JLabel("Esperando a más jugadores...", SwingConstants.CENTER);
-		waitingLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		waitingLabel.setForeground(new Color(100, 200, 255));
-		infoPanel.add(waitingLabel);
+        playersLabel = new JLabel("Jugadores: 1/4", SwingConstants.CENTER);
+        playersLabel.setForeground(Color.WHITE);
+        playersLabel.setFont(new Font("Consolas", Font.BOLD, 18));
+        infoPanel.add(playersLabel);
 
-		mainPanel.add(infoPanel, BorderLayout.NORTH);
+        waitingLabel = new JLabel("Esperando a más jugadores...", SwingConstants.CENTER);
+        waitingLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        waitingLabel.setForeground(new Color(100, 200, 255));
+        infoPanel.add(waitingLabel);
 
-		// --- PANEL CENTRAL: LISTA DE JUGADORES ---
-		playerListModel = new DefaultListModel<>();
-		playerListModel.addElement(client.getPlayerName() + " (TÚ)");
+        mainPanel.add(infoPanel, BorderLayout.NORTH);
 
-		playerList = new JList<>(playerListModel);
-		playerList.setBackground(new Color(60, 60, 60));
-		playerList.setSelectionBackground(new Color(80, 80, 80));
+        // --- PANEL CENTRAL: LISTA DE JUGADORES ---
+        playerListModel = new DefaultListModel<>();
+        playerListModel.addElement(client.getPlayerName() + " (TÚ)");
 
-		// Aplicamos nuestro renderizador personalizado
-		playerList.setCellRenderer(new PlayerListRenderer());
+        playerList = new JList<>(playerListModel);
+        playerList.setBackground(new Color(60, 60, 60));
+        playerList.setSelectionBackground(new Color(80, 80, 80));
 
-		JScrollPane scrollPane = new JScrollPane(playerList);
-		scrollPane.setBorder(BorderFactory.createLineBorder(new Color(228, 30, 38), 2));
-		scrollPane.getViewport().setBackground(new Color(60, 60, 60));
-		mainPanel.add(scrollPane, BorderLayout.CENTER);
+        // Aplicamos nuestro renderizador personalizado
+        playerList.setCellRenderer(new PlayerListRenderer());
 
-		// --- PANEL INFERIOR: BOTONES ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-		buttonPanel.setOpaque(false);
+        JScrollPane scrollPane = new JScrollPane(playerList);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(228, 30, 38), 2));
+        scrollPane.getViewport().setBackground(new Color(60, 60, 60));
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-		readyButton = new GameButton("LISTO", null);
-		readyButton.setPreferredSize(new Dimension(180, 50));
-		readyButton.addActionListener(e -> markReady());
-		buttonPanel.add(readyButton);
+        // --- PANEL INFERIOR: BOTONES ---
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setOpaque(false);
 
-		cancelButton = new GameButton("SALIR", null);
-		cancelButton.setPreferredSize(new Dimension(180, 50));
-		cancelButton.addActionListener(e -> cancelLobby());
-		buttonPanel.add(cancelButton);
+        readyButton = new GameButton("LISTO", null);
+        readyButton.setPreferredSize(new Dimension(180, 50));
+        readyButton.addActionListener(e -> markReady());
+        buttonPanel.add(readyButton);
 
-		mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        cancelButton = new GameButton("SALIR", null);
+        cancelButton.setPreferredSize(new Dimension(180, 50));
+        cancelButton.addActionListener(e -> cancelLobby());
+        buttonPanel.add(cancelButton);
 
-		add(mainPanel);
-	}
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-	private void setupClientListener() {
-		client.setMessageListener(new Client.MessageListener() {
-			@Override
-			public void onMessageReceived(Message message) {
-				handleServerMessage(message);
-			}
+        add(mainPanel);
+    }
 
-			@Override
-			public void onDisconnected() {
-				SwingUtilities.invokeLater(() -> {
-					JOptionPane.showMessageDialog(LobbyFrame.this,
-							"Desconectado del servidor",
-							"Error de conexión",
-							JOptionPane.ERROR_MESSAGE);
-					if (listener != null) {
-						listener.onCancelLobby();
-					}
-				});
-			}
-		});
-	}
+    private void setupClientListener() {
+        client.setMessageListener(new Client.MessageListener() {
+            @Override
+            public void onMessageReceived(Message message) {
+                handleServerMessage(message);
+            }
 
-	private void handleServerMessage(Message message) {
-		SwingUtilities.invokeLater(() -> {
-			switch (message.getType()) {
-				case LOBBY_UPDATE:
-					handleLobbyUpdate(message);
-					break;
-				case START_GAME:
-					if (listener != null) {
-						listener.onGameStart();
-					}
-					break;
-				case ERROR:
-					String errorMsg = message.getString("errorMessage");
-					JOptionPane.showMessageDialog(this, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
-					break;
-				default:
-					break;
-			}
-		});
-	}
+            @Override
+            public void onDisconnected() {
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(LobbyFrame.this,
+                            "Desconectado del servidor",
+                            "Error de conexión",
+                            JOptionPane.ERROR_MESSAGE);
+                    if (listener != null) {
+                        listener.onCancelLobby();
+                    }
+                });
+            }
+        });
+    }
 
-	@SuppressWarnings("unchecked")
-	private void handleLobbyUpdate(Message message) {
-		System.out.println("[LOBBY] handleLobbyUpdate recibido en " + client.getPlayerName());
+    private void handleServerMessage(Message message) {
+        SwingUtilities.invokeLater(() -> {
+            switch (message.getType()) {
+                case LOBBY_UPDATE:
+                    handleLobbyUpdate(message);
+                    break;
+                case START_GAME:
+                    if (listener != null) {
+                        listener.onGameStart();
+                    }
+                    break;
+                case ERROR:
+                    String errorMsg = message.getString("errorMessage");
+                    JOptionPane.showMessageDialog(this, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
 
-		List<String> players = (List<String>) message.get("players");
-		Integer connected = message.getInteger("playersConnected");
-		Integer max = message.getInteger("maxPlayers");
+    @SuppressWarnings("unchecked")
+    private void handleLobbyUpdate(Message message) {
+        System.out.println("[LOBBY] handleLobbyUpdate recibido en " + client.getPlayerName());
 
-		if (players != null) {
-			playerListModel.clear();
-			playerListModel.addElement(client.getPlayerName() + " (TÚ)");
-			for (String player : players) {
-				if (!player.equals(client.getPlayerName())) {
-					playerListModel.addElement(player);
-				}
-			}
-		}
+        List<String> players = (List<String>) message.get("players");
+        Integer connected = message.getInteger("playersConnected");
+        Integer max = message.getInteger("maxPlayers");
 
-		if (connected != null && max != null) {
-			playersLabel.setText("Jugadores: " + connected + "/" + max);
-			playersConnected = connected;
-			maxPlayers = max;
+        if (players != null) {
+            playerListModel.clear();
+            playerListModel.addElement(client.getPlayerName() + " (TÚ)");
+            for (String player : players) {
+                if (!player.equals(client.getPlayerName())) {
+                    playerListModel.addElement(player);
+                }
+            }
+        }
 
-			if (connected < 2) {
-				waitingLabel.setText("Esperando a más jugadores (mínimo 2)...");
-				waitingLabel.setForeground(new Color(100, 200, 255));
-				readyButton.setEnabled(false);
-			} else if (connected == max) {
-				waitingLabel.setText("¡Sala llena! Iniciando...");
-				waitingLabel.setForeground(new Color(100, 255, 100));
-				readyButton.setEnabled(false);
-			} else {
-				waitingLabel.setText("Esperando a que los jugadores estén listos...");
-				waitingLabel.setForeground(new Color(255, 204, 0));
-				if (readyButton.isEnabled() || !readyButton.getText().equals("ESPERANDO...")) {
-					readyButton.setEnabled(true);
-				}
-			}
-		}
-	}
+        if (connected != null && max != null) {
+            playersLabel.setText("Jugadores: " + connected + "/" + max);
+            playersConnected = connected;
+            maxPlayers = max;
 
-	private void markReady() {
-		readyButton.setEnabled(false);
-		readyButton.setText("ESPERANDO...");
+            if (connected < 2) {
+                waitingLabel.setText("Esperando a más jugadores (mínimo 2)...");
+                waitingLabel.setForeground(new Color(100, 200, 255));
+                readyButton.setEnabled(false);
+            } else if (connected == max) {
+                waitingLabel.setText("¡Sala llena! Iniciando...");
+                waitingLabel.setForeground(new Color(100, 255, 100));
+                readyButton.setEnabled(false);
+            } else {
+                waitingLabel.setText("Esperando a que los jugadores estén listos...");
+                waitingLabel.setForeground(new Color(255, 204, 0));
+                if (readyButton.isEnabled() || !readyButton.getText().equals("ESPERANDO...")) {
+                    readyButton.setEnabled(true);
+                }
+            }
+        }
+    }
 
-		Message readyMsg = new Message(Message.MessageType.PLAYER_READY);
-		client.sendMessage(readyMsg);
-	}
+    private void markReady() {
+        readyButton.setEnabled(false);
+        readyButton.setText("ESPERANDO...");
 
-	private void cancelLobby() {
-		client.disconnect();
-		if (listener != null) {
-			listener.onCancelLobby();
-		}
-	}
+        Message readyMsg = new Message(Message.MessageType.PLAYER_READY);
+        client.sendMessage(readyMsg);
+    }
 
-	public void setLobbyListener(LobbyListener listener) {
-		this.listener = listener;
-	}
+    private void cancelLobby() {
+        client.disconnect();
+        if (listener != null) {
+            listener.onCancelLobby();
+        }
+    }
+
+    public void setLobbyListener(LobbyListener listener) {
+        this.listener = listener;
+    }
 }

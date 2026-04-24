@@ -1,6 +1,7 @@
 package net.salesianos.client.ui;
 
 import net.salesianos.client.ui.components.GameButton;
+
 import javax.swing.*;
 import java.awt.*;
 

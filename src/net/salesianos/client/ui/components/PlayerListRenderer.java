@@ -45,11 +45,16 @@ public class PlayerListRenderer extends DefaultListCellRenderer {
                 g2.drawOval(x, y, size, size);
                 g2.dispose();
             }
-            @Override
-            public int getIconWidth() { return size; }
 
             @Override
-            public int getIconHeight() { return size; }
+            public int getIconWidth() {
+                return size;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return size;
+            }
         };
     }
 }

@@ -16,89 +16,94 @@ import java.util.logging.Logger;
  */
 public class GameStateUpdateHandler {
 
-	private static final Logger LOGGER = Logger.getLogger(GameStateUpdateHandler.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GameStateUpdateHandler.class.getName());
 
-	private String currentCard;
-	private String currentPlayer;
-	private int direction;
-	private List<String> playerHand;
-	private List<Map<String, Object>> players;
+    private String currentCard;
+    private String currentPlayer;
+    private int direction;
+    private List<String> playerHand;
+    private List<Map<String, Object>> players;
 
-	private final Client client;
-	private final Listener listener;
+    private final Client client;
+    private final Listener listener;
 
-	public interface Listener {
-		void onStateUpdated(GameStateUpdateHandler state);
-		void onPlayerHandUpdated(List<String> hand);
-		void onPlayersListUpdated(List<Map<String, Object>> players);
-		void onCurrentCardUpdated(String cardStr);
-		void onCurrentPlayerChanged(String playerName, boolean isMyTurn);
-		void onDirectionChanged(int direction);
-	}
+    public interface Listener {
+        void onStateUpdated(GameStateUpdateHandler state);
 
-	public GameStateUpdateHandler(Client client, Listener listener) {
-		this.client = client;
-		this.listener = listener;
-	}
+        void onPlayerHandUpdated(List<String> hand);
 
-	/**
-	 * Updates state from a server UPDATE_STATE message.
-	 */
-	public void updateFromMessage(Message message) {
-		currentCard = message.getString("currentCard");
-		currentPlayer = message.getString("currentPlayer");
-		direction = message.getInteger("direction");
+        void onPlayersListUpdated(List<Map<String, Object>> players);
 
-		@SuppressWarnings("unchecked")
-		List<String> hand = (List<String>) message.get("hand");
-		if (hand != null) {
-			playerHand = hand;
-			listener.onPlayerHandUpdated(hand);
-		}
+        void onCurrentCardUpdated(String cardStr);
 
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> playersList = (List<Map<String, Object>>) message.get("players");
-		if (playersList != null) {
-			players = playersList;
-			listener.onPlayersListUpdated(playersList);
-		}
+        void onCurrentPlayerChanged(String playerName, boolean isMyTurn);
 
-		// Update current card display
-		listener.onCurrentCardUpdated(currentCard);
+        void onDirectionChanged(int direction);
+    }
 
-		// Update current player and turn indicator
-		boolean isMyTurn = currentPlayer.equals(client.getPlayerName());
-		listener.onCurrentPlayerChanged(currentPlayer, isMyTurn);
+    public GameStateUpdateHandler(Client client, Listener listener) {
+        this.client = client;
+        this.listener = listener;
+    }
 
-		// Update direction indicator
-		listener.onDirectionChanged(direction);
+    /**
+     * Updates state from a server UPDATE_STATE message.
+     */
+    public void updateFromMessage(Message message) {
+        currentCard = message.getString("currentCard");
+        currentPlayer = message.getString("currentPlayer");
+        direction = message.getInteger("direction");
 
-		listener.onStateUpdated(this);
-	}
+        @SuppressWarnings("unchecked")
+        List<String> hand = (List<String>) message.get("hand");
+        if (hand != null) {
+            playerHand = hand;
+            listener.onPlayerHandUpdated(hand);
+        }
 
-	// Getters
-	public String getCurrentCard() {
-		return currentCard;
-	}
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> playersList = (List<Map<String, Object>>) message.get("players");
+        if (playersList != null) {
+            players = playersList;
+            listener.onPlayersListUpdated(playersList);
+        }
 
-	public Card getCurrentCardAsCard() {
-		return CardParser.parseCard(currentCard);
-	}
+        // Update current card display
+        listener.onCurrentCardUpdated(currentCard);
 
-	public String getCurrentPlayer() {
-		return currentPlayer;
-	}
+        // Update current player and turn indicator
+        boolean isMyTurn = currentPlayer.equals(client.getPlayerName());
+        listener.onCurrentPlayerChanged(currentPlayer, isMyTurn);
 
-	public int getDirection() {
-		return direction;
-	}
+        // Update direction indicator
+        listener.onDirectionChanged(direction);
 
-	public List<String> getPlayerHand() {
-		return playerHand;
-	}
+        listener.onStateUpdated(this);
+    }
 
-	public List<Map<String, Object>> getPlayers() {
-		return players;
-	}
+    // Getters
+    public String getCurrentCard() {
+        return currentCard;
+    }
+
+    public Card getCurrentCardAsCard() {
+        return CardParser.parseCard(currentCard);
+    }
+
+    public String getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public List<String> getPlayerHand() {
+        return playerHand;
+    }
+
+    public List<Map<String, Object>> getPlayers() {
+        return players;
+    }
 }
 

@@ -30,7 +30,8 @@ public class MainMenuDialog extends JDialog {
             if (logoUrl != null) {
                 ImageIcon originalIcon = new ImageIcon(logoUrl);
                 // Escalar la imagen si es necesario
-                Image scaledImage = originalIcon.getImage().getScaledInstance(200, -1, Image.SCALE_SMOOTH);                logoLabel.setIcon(new ImageIcon(scaledImage));
+                Image scaledImage = originalIcon.getImage().getScaledInstance(200, -1, Image.SCALE_SMOOTH);
+                logoLabel.setIcon(new ImageIcon(scaledImage));
             } else {
                 logoLabel.setText("¡Bienvenido a UNO!");
                 logoLabel.setForeground(Color.WHITE);

@@ -46,13 +46,24 @@ public class GameButton extends JButton {
         // --- EFECTOS INTERACTIVOS ---
         addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) { setBackground(hoverColor); }
+            public void mouseEntered(MouseEvent e) {
+                setBackground(hoverColor);
+            }
+
             @Override
-            public void mouseExited(MouseEvent e) { setBackground(normalColor); }
+            public void mouseExited(MouseEvent e) {
+                setBackground(normalColor);
+            }
+
             @Override
-            public void mousePressed(MouseEvent e) { setBackground(pressedColor); }
+            public void mousePressed(MouseEvent e) {
+                setBackground(pressedColor);
+            }
+
             @Override
-            public void mouseReleased(MouseEvent e) { setBackground(hoverColor); }
+            public void mouseReleased(MouseEvent e) {
+                setBackground(hoverColor);
+            }
         });
     }
 
