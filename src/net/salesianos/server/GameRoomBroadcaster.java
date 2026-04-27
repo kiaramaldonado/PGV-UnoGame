@@ -8,6 +8,7 @@ import net.salesianos.server.handlers.ClientHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -97,15 +98,21 @@ public class GameRoomBroadcaster {
         return lobbyMessage;
     }
 
-    /**
-     * Transmite actualización de estado a todos los jugadores.
-     */
-    public void broadcastStateUpdate(String currentCard, String currentPlayer, int direction, List<Player> gameStatePlayers) {
-        List<Map<String, Object>> playersInfo = getPlayersInfo(gameStatePlayers);
+     /**
+      * Transmite actualización de estado a todos los jugadores.
+      */
+     public void broadcastStateUpdate(String currentCard, String currentPlayer, int direction, List<Player> gameStatePlayers,
+                                     Map<String, Player> playerMap, List<String> playerIdOrder, List<ClientHandler> handlers) {
+         List<Map<String, Object>> playersInfo = getPlayersInfo(gameStatePlayers);
 
-        for (int i = 0; i < players.size(); i++) {
-            ClientHandler handler = players.get(i);
-            Player player = gameStatePlayers.get(i);
+         for (ClientHandler handler : handlers) {
+             String playerId = handler.getPlayerId();
+             Player player = playerMap.get(playerId);
+
+             if (player == null) {
+                 LOGGER.log(Level.WARNING, "Player not found for handler: " + playerId);
+                 continue;
+             }
 
             Message playerMessage = new Message(Message.MessageType.UPDATE_STATE);
             playerMessage.put("currentCard", currentCard);

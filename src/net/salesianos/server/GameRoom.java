@@ -23,16 +23,17 @@ public class GameRoom {
     private static final int MIN_PLAYERS = 2;
     private static final int INITIAL_CARDS = 7;
 
-    private final String roomId;
-    private final List<ClientHandler> players;
-    private final Map<String, Player> playerMap;
-    private final Set<String> readyPlayers;
-    private final GameRoomBroadcaster broadcaster;
-    private GameState gameState;
-    private volatile int currentTurnIndex;
-    private boolean gameStarted;
-    private boolean gameEnded;
-    private volatile String unoTargetPlayerId = null;
+     private final String roomId;
+     private final List<ClientHandler> players;
+     private final Map<String, Player> playerMap;
+     private final Set<String> readyPlayers;
+     private final GameRoomBroadcaster broadcaster;
+     private GameState gameState;
+     private volatile int currentTurnIndex;
+     private boolean gameStarted;
+     private boolean gameEnded;
+     private volatile String unoTargetPlayerId = null;
+     private final List<String> playerIdOrder = Collections.synchronizedList(new ArrayList<>());
 
     public GameRoom(String roomId) {
         this.roomId = roomId;
@@ -52,10 +53,12 @@ public class GameRoom {
             return false;
         }
 
-        String playerName = handler.getPlayerName();
-        players.add(handler);
-        playerMap.put(handler.getPlayerId(), new Player(playerName));
-        handler.setGameRoom(this);
+         String playerName = handler.getPlayerName();
+         String playerId = handler.getPlayerId();
+         players.add(handler);
+         playerMap.put(playerId, new Player(playerName));
+         playerIdOrder.add(playerId);
+         handler.setGameRoom(this);
 
         LOGGER.log(Level.INFO, "🔵 Jugador " + playerName + " agregado a sala " + roomId + ". Total: " + players.size());
         LOGGER.log(Level.INFO, "🔵 Jugadores actuales: " + getPlayerNames());
@@ -74,15 +77,17 @@ public class GameRoom {
         return true;
     }
 
-    /**
-     * Elimina un jugador de la sala.
-     */
-    public synchronized void removePlayer(ClientHandler handler) {
-        players.remove(handler);
-        playerMap.remove(handler.getPlayerId());
+     /**
+      * Elimina un jugador de la sala.
+      */
+     public synchronized void removePlayer(ClientHandler handler) {
+         String playerId = handler.getPlayerId();
+         players.remove(handler);
+         playerMap.remove(playerId);
+         playerIdOrder.remove(playerId);
 
-        // IMPORTANTE: Quitarlo de los jugadores listos si se desconecta
-        readyPlayers.remove(handler.getPlayerId());
+         // IMPORTANTE: Quitarlo de los jugadores listos si se desconecta
+         readyPlayers.remove(playerId);
 
         LOGGER.log(Level.INFO, "Jugador " + handler.getPlayerName() + " salió de sala " + roomId);
 
@@ -127,10 +132,15 @@ public class GameRoom {
         gameStarted = true;
         gameEnded = false;
 
-        List<Player> playerList = new ArrayList<>(playerMap.values());
-        gameState = new GameState(playerList);
-        gameState.startGame(INITIAL_CARDS);
-        currentTurnIndex = 0;
+         // Create player list with guaranteed order using playerIdOrder
+         List<Player> playerList = new ArrayList<>();
+         for (String playerId : playerIdOrder) {
+             playerList.add(playerMap.get(playerId));
+         }
+
+         gameState = new GameState(playerList);
+         gameState.startGame(INITIAL_CARDS);
+         currentTurnIndex = 0;
 
         LOGGER.log(Level.INFO, "Partida iniciada en sala " + roomId + " con " + players.size() + " jugadores");
 
@@ -280,17 +290,20 @@ public class GameRoom {
         broadcaster.broadcastMessage(message);
     }
 
-    /**
-     * Transmite actualización de estado a todos los jugadores.
-     */
-    private void broadcastStateUpdate() {
-        broadcaster.broadcastStateUpdate(
-                gameState.getCurrentCard().toString(),
-                gameState.getCurrentPlayer().getName(),
-                gameState.getDirection(),
-                gameState.getPlayers()
-        );
-    }
+     /**
+      * Transmite actualización de estado a todos los jugadores.
+      */
+     private void broadcastStateUpdate() {
+         broadcaster.broadcastStateUpdate(
+                 gameState.getCurrentCard().toString(),
+                 gameState.getCurrentPlayer().getName(),
+                 gameState.getDirection(),
+                 gameState.getPlayers(),
+                 playerMap,
+                 playerIdOrder,
+                 players
+         );
+     }
 
     /**
      * Transmite actualización de lobby.
@@ -358,15 +371,16 @@ public class GameRoom {
         return gameEnded;
     }
 
-    public void handlePlayerReady(ClientHandler handler, Message message) {
-        synchronized (this) {
-            if (gameStarted) {
-                return;
-            }
-            readyPlayers.add(handler.getPlayerId());
-            LOGGER.log(Level.INFO, handler.getPlayerName() + " está listo. Ready: " + readyPlayers.size() + "/" + players.size());
-            broadcastLobbyUpdate();
-            checkGameStart();
-        }
-    }
+     public void handlePlayerReady(ClientHandler handler, Message message) {
+         synchronized (this) {
+             if (gameStarted) {
+                 return;
+             }
+             String playerId = handler.getPlayerId();
+             readyPlayers.add(playerId);
+             LOGGER.log(Level.INFO, handler.getPlayerName() + " está listo. Ready: " + readyPlayers.size() + "/" + players.size());
+             broadcastLobbyUpdate();
+             checkGameStart();
+         }
+     }
 }
