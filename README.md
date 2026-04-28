@@ -77,8 +77,4 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
    - Garantías de entrega y orden
    - Ciclo completo: envío, serialización, transmisión, recepción, deserialización
 
-### 📖 Documentación Técnica Adicional
-
-- [Estructura del Proyecto](docs/structure.md) - Organización de carpetas y responsabilidades
-
-[ Hecho por Kiara Maldonado ]
+[  Hecho por Kiara Maldonado  ]
