@@ -7,9 +7,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Handles socket I/O operations (ObjectInputStream/ObjectOutputStream).
- * Eliminates code duplication between Client and ClientHandler.
- * Follows the Single Responsibility Principle.
+ * Maneja operaciones de I/O de socket (ObjectInputStream/ObjectOutputStream).
+ * Elimina la duplicación de código entre Cliente y ClientHandler.
+ * Sigue el Principio de Responsabilidad Única.
  */
 public class SocketIOHandler {
 
@@ -19,15 +19,14 @@ public class SocketIOHandler {
     private final ObjectInputStream in;
 
     /**
-     * Creates a SocketIOHandler from a socket's streams.
-     * ObjectOutputStream MUST be created before ObjectInputStream.
+     * Crea un SocketIOHandler a partir de los streams de un socket.
+     * ObjectOutputStream DEBE crearse antes que ObjectInputStream.
      *
-     * @param outputStream the socket's output stream
-     * @param inputStream  the socket's input stream
-     * @throws IOException if stream creation fails
+     * @param outputStream el stream de salida del socket
+     * @param inputStream  el stream de entrada del socket
+     * @throws IOException si la creación del stream falla
      */
     public SocketIOHandler(OutputStream outputStream, InputStream inputStream) throws IOException {
-        // ¡ObjectOutputStream DEBE crearse primero!
         this.out = new ObjectOutputStream(outputStream);
         this.out.flush();
 
@@ -35,10 +34,10 @@ public class SocketIOHandler {
     }
 
     /**
-     * Sends a message through the socket.
+     * Envía un mensaje a través del socket.
      *
-     * @param message the message to send
-     * @return true if successfully sent, false otherwise
+     * @param message el mensaje a enviar
+     * @return verdadero si se envió exitosamente, falso en caso contrario
      */
     public synchronized boolean sendMessage(Message message) {
         try {
@@ -46,24 +45,24 @@ public class SocketIOHandler {
             out.flush();
             return true;
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Error sending message: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error al enviar mensaje: " + e.getMessage());
             return false;
         }
     }
 
     /**
-     * Receives a message from the socket (blocking).
+     * Recibe un mensaje del socket (bloqueante).
      *
-     * @return the received message
-     * @throws IOException            if connection is lost
-     * @throws ClassNotFoundException if message type is unknown
+     * @return el mensaje recibido
+     * @throws IOException            si la conexión se pierde
+     * @throws ClassNotFoundException si el tipo de mensaje es desconocido
      */
     public Message receiveMessage() throws IOException, ClassNotFoundException {
         return (Message) in.readObject();
     }
 
     /**
-     * Closes all streams associated with this handler.
+     * Cierra todos los streams asociados con este manejador.
      */
     public void close() {
         try {
