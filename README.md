@@ -39,6 +39,6 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
 ## Documentación Detallada
 
 Puedes encontrar más detalles técnicos en la carpeta `docs/`:
-- [Comunicación Cliente-Servidor](docs/comunicacion.md)
+- [Comunicación Cliente-Servidor](docs/communication.md)
 
 [ Hecho por Kiara Maldonado ]
