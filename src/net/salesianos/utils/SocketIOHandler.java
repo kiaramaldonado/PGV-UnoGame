@@ -27,7 +27,7 @@ public class SocketIOHandler {
      * @throws IOException if stream creation fails
      */
     public SocketIOHandler(OutputStream outputStream, InputStream inputStream) throws IOException {
-        // ObjectOutputStream must be created first!
+        // ¡ObjectOutputStream DEBE crearse primero!
         this.out = new ObjectOutputStream(outputStream);
         this.out.flush();
 
@@ -70,7 +70,7 @@ public class SocketIOHandler {
             if (in != null) in.close();
             if (out != null) out.close();
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Error closing streams: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Error cerrando streams: " + e.getMessage());
         }
     }
 }

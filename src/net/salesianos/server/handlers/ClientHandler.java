@@ -48,7 +48,7 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            // Use centralized SocketIOHandler
+            // Usar SocketIOHandler centralizado
             ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
 
             LOGGER.log(Level.INFO, "ClientHandler iniciado para " + socket.getInetAddress());
@@ -147,9 +147,9 @@ public class ClientHandler implements Runnable {
     }
 
     public void setGameRoom(GameRoom gameRoom) {
-        this.gameRoom = gameRoom;
-        // Initialize game message handler when assigned to a room
-        this.gameMessageHandler = new GameMessageHandler(gameRoom, this);
+         this.gameRoom = gameRoom;
+         // Inicializar el handler de mensajes del juego cuando se asigne a una sala
+         this.gameMessageHandler = new GameMessageHandler(gameRoom, this);
     }
 
     public GameRoom getGameRoom() {

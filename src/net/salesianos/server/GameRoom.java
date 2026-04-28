@@ -132,7 +132,7 @@ public class GameRoom {
         gameStarted = true;
         gameEnded = false;
 
-         // Create player list with guaranteed order using playerIdOrder
+         // Crear lista de jugadores con orden garantizado usando playerIdOrder
          List<Player> playerList = new ArrayList<>();
          for (String playerId : playerIdOrder) {
              playerList.add(playerMap.get(playerId));

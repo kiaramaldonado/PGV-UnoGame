@@ -14,14 +14,14 @@ public class CardParser {
     private static final Logger LOGGER = Logger.getLogger(CardParser.class.getName());
 
     private CardParser() {
-        // Utility class - no instantiation
+        // Clase de utilidad - sin instanciación
     }
 
     /**
-     * Parses a card string in format "COLOR-VALUE" to a Card object.
+     * Parsea una cadena de carta en formato "COLOR-VALOR" a un objeto Card.
      *
-     * @param cardStr the card string (e.g., "ROJO-FIVE")
-     * @return the Card object, or null if invalid
+     * @param cardStr la cadena de carta (ej: "ROJO-FIVE")
+     * @return el objeto Card, o null si es inválido
      */
     public static Card parseCard(String cardStr) {
         if (cardStr == null || !cardStr.contains("-")) {

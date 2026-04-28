@@ -50,7 +50,7 @@ public class Client {
         try {
             socket = new Socket(serverHost, serverPort);
 
-            // Use centralized SocketIOHandler
+            // Usar SocketIOHandler centralizado
             ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
 
 

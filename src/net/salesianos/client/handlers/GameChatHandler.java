@@ -62,7 +62,7 @@ public class GameChatHandler {
     }
 
     /**
-     * Clears the chat area.
+     * Limpia el área de chat.
      */
     public void clear() {
         chatArea.setText("");

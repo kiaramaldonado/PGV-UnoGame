@@ -28,7 +28,7 @@ public class GameFrame extends JFrame {
     private final Client client;
     private GameListener listener;
 
-    // Handlers for separated responsibilities
+    // Handlers para responsabilidades separadas
     private GameStateUpdateHandler stateUpdateHandler;
     private GameChatHandler chatHandler;
 
@@ -347,7 +347,7 @@ public class GameFrame extends JFrame {
 
     @SuppressWarnings("unchecked")
     private void updateGameState(Message message) {
-        // Use specialized handler for state updates
+        // Usar handler especializado para actualizaciones de estado
         stateUpdateHandler.updateFromMessage(message);
     }
 

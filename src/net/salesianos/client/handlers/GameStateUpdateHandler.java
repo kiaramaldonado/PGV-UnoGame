@@ -47,7 +47,7 @@ public class GameStateUpdateHandler {
     }
 
     /**
-     * Updates state from a server UPDATE_STATE message.
+     * Actualiza el estado desde un mensaje UPDATE_STATE del servidor.
      */
     public void updateFromMessage(Message message) {
         currentCard = message.getString("currentCard");
@@ -68,14 +68,14 @@ public class GameStateUpdateHandler {
             listener.onPlayersListUpdated(playersList);
         }
 
-        // Update current card display
+        // Actualizar pantalla de carta actual
         listener.onCurrentCardUpdated(currentCard);
 
-        // Update current player and turn indicator
+        // Actualizar jugador actual e indicador de turno
         boolean isMyTurn = currentPlayer.equals(client.getPlayerName());
         listener.onCurrentPlayerChanged(currentPlayer, isMyTurn);
 
-        // Update direction indicator
+        // Actualizar indicador de dirección
         listener.onDirectionChanged(direction);
 
         listener.onStateUpdated(this);

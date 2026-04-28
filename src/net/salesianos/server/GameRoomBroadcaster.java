@@ -143,7 +143,7 @@ public class GameRoomBroadcaster {
     }
 
     /**
-     * Gets the number of players.
+     * Obtiene el número de jugadores.
      */
     public int getPlayerCount() {
         return players.size();

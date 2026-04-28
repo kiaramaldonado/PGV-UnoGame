@@ -22,7 +22,7 @@ public class GameUIComponentFactory {
     private static final int DRAW_PILE_HEIGHT = 180;
 
     private GameUIComponentFactory() {
-        // Factory utility - no instantiation
+        // Utilidad de fábrica - sin instanciación
     }
 
     /**
@@ -82,7 +82,7 @@ public class GameUIComponentFactory {
     }
 
     /**
-     * Creates a card button for the current/discard pile card.
+     * Crea un botón de carta para la carta actual/descarte.
      */
     public static CardButton createCenterCardButton(String cardStr) {
         Card card = CardParser.parseCard(cardStr);

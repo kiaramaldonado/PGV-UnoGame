@@ -50,7 +50,7 @@ public class GameMessageHandler {
                 gameRoom.broadcastMessage(message);
                 break;
             default:
-                LOGGER.log(Level.WARNING, "Unhandled message type: " + message.getType());
+                LOGGER.log(Level.WARNING, "Tipo de mensaje no manejado: " + message.getType());
         }
     }
 }
