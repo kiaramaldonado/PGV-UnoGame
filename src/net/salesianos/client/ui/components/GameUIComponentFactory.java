@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Handles UI rendering for game components (cards, buttons, etc).
- * Separates UI rendering logic from GameFrame.
- * Follows Single Responsibility Principle.
+ * Gestiona el renderizado de la UI para componentes del juego (cards, buttons, etc).
  */
 public class GameUIComponentFactory {
 
@@ -22,11 +20,10 @@ public class GameUIComponentFactory {
     private static final int DRAW_PILE_HEIGHT = 180;
 
     private GameUIComponentFactory() {
-        // Utilidad de fábrica - sin instanciación
     }
 
     /**
-     * Creates a button for the draw pile.
+     * Crea un botón para una baraja de la que robar.
      */
     public static JButton createDrawPileButton(Runnable onClickAction) {
         JButton btn = new JButton();
@@ -60,7 +57,7 @@ public class GameUIComponentFactory {
     }
 
     /**
-     * Creates card buttons from a list of card strings.
+     * Crea botones tipo Carta para una lista de cartas
      */
     public static List<CardButton> createCardButtons(List<String> cardStrings, CardButtonListener listener) {
         List<CardButton> buttons = new ArrayList<>();

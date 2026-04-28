@@ -3,28 +3,28 @@ package net.salesianos.client.ui.components;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Gestiona la demostración de jugadores.
+ * */
 public class PlayerListRenderer extends DefaultListCellRenderer {
 
+    // Obtener la lista de jugadores
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
-        // Estilo general del texto
         label.setForeground(Color.WHITE);
         label.setFont(new Font("Arial", Font.BOLD, 16));
         label.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 15));
 
         String playerName = value.toString();
 
-        // Si es el usuario actual "(TÚ)", lo ponemos en cursiva para destacarlo
         if (playerName.endsWith(" (TÚ)")) {
             label.setFont(new Font("Arial", Font.BOLD | Font.ITALIC, 16));
         }
 
-        // Obtener el color asignado a este jugador
         Color playerColor = ColorUtils.getColorForPlayer(playerName);
 
-        // Crear y asignar el icono circular
         label.setIcon(createCircleIcon(playerColor, 18));
         label.setIconTextGap(15);
 

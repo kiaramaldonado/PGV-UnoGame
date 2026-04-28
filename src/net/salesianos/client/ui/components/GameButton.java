@@ -18,8 +18,8 @@ public class GameButton extends JButton {
         // --- CORRECCIÓN DEL FONDO BLANCO ---
         setContentAreaFilled(false);
         setFocusPainted(false);
-        setBorderPainted(false); // Quitamos el borde por defecto que suele ser blanco/gris
-        setOpaque(false);        // Fundamental para que Swing no pinte un cuadrado blanco detrás
+        setBorderPainted(false);
+        setOpaque(false);
 
         // --- ESTILO DEL TEXTO ---
         setForeground(Color.WHITE);
@@ -27,7 +27,6 @@ public class GameButton extends JButton {
         setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // --- TAMAÑO Y MÁRGENES ---
-        // Da espacio interior al botón para que no quede pegado al texto
         setPreferredSize(new Dimension(160, 120));
 
         // --- MANEJO DEL ICONO ---
@@ -37,7 +36,7 @@ public class GameButton extends JButton {
                 setIcon(icon);
                 setVerticalTextPosition(SwingConstants.BOTTOM);
                 setHorizontalTextPosition(SwingConstants.CENTER);
-                setIconTextGap(15); // Espacio entre el icono y el texto
+                setIconTextGap(15);
             } catch (Exception e) {
                 System.out.println("No se pudo cargar el icono: " + iconPath);
             }
@@ -82,11 +81,9 @@ public class GameButton extends JButton {
             g2.setColor(normalColor);
         }
 
-        // Dibujar nuestro propio fondo con bordes redondeados
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
         g2.dispose();
 
-        // Finalmente, decirle a Java que pinte el texto y el icono por encima
         super.paintComponent(g);
     }
 }

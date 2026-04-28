@@ -6,21 +6,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Centralized utility for parsing Card strings.
- * Eliminates code duplication between GameFrame and GameRoom.
+ * Utilidad centralizada para parsear cadenas de Cartas
+ * Elimina duplicidad de código entre GameFrame y GameRoom.
  */
 public class CardParser {
 
     private static final Logger LOGGER = Logger.getLogger(CardParser.class.getName());
 
     private CardParser() {
-        // Clase de utilidad - sin instanciación
     }
 
     /**
      * Parsea una cadena de carta en formato "COLOR-VALOR" a un objeto Card.
      *
-     * @param cardStr la cadena de carta (ej: "ROJO-FIVE")
+     * @param cardStr la cadena de carta
      * @return el objeto Card, o null si es inválido
      */
     public static Card parseCard(String cardStr) {

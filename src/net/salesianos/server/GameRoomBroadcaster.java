@@ -13,9 +13,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * Handles message broadcasting to all players in a game room.
- * Separates broadcasting logic from GameRoom.
- * Follows Single Responsibility Principle.
+ * Gestiona el envío de los mensajes a todos los jugadores
  */
 public class GameRoomBroadcaster {
 
@@ -28,7 +26,7 @@ public class GameRoomBroadcaster {
     }
 
     /**
-     * Broadcasts a message to all players.
+     * Broadcast un mensaje a todos los jugadores
      */
     public void broadcastMessage(Message message) {
         for (ClientHandler handler : players) {
@@ -37,14 +35,14 @@ public class GameRoomBroadcaster {
     }
 
     /**
-     * Sends a message to a specific player.
+     * Envía el mensaje a alguien en concreto
      */
     public void sendToPlayer(ClientHandler handler, Message message) {
         handler.sendMessage(message);
     }
 
     /**
-     * Broadcasts a message to all players except one.
+     * Broadcasts el mensaje a todos los jugadores menos uno
      */
     public void broadcastMessageExcept(Message message, ClientHandler excludeHandler) {
         for (ClientHandler handler : players) {
@@ -55,7 +53,7 @@ public class GameRoomBroadcaster {
     }
 
     /**
-     * Broadcasts an error message to all players.
+     * Broadcasts un mensaje de error a todos los jugadores
      */
     public void broadcastError(String errorMessage) {
         Message error = new Message(Message.MessageType.ERROR);
@@ -64,7 +62,7 @@ public class GameRoomBroadcaster {
     }
 
     /**
-     * Sends an error to a specific player.
+     * Envía un error a un jugador en específico
      */
     public void sendErrorToPlayer(ClientHandler handler, String errorMessage) {
         Message error = new Message(Message.MessageType.ERROR);

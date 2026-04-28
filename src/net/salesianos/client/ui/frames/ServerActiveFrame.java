@@ -73,7 +73,6 @@ public class ServerActiveFrame extends JFrame {
         btnClose.setPreferredSize(new Dimension(200, 50));
 
         btnClose.addActionListener(e -> {
-            // Aquí cerramos la aplicación entera, lo que destruye el servidor
             System.out.println("Cerrando sala...");
             System.exit(0);
         });
@@ -81,6 +80,6 @@ public class ServerActiveFrame extends JFrame {
         bottomPanel.add(btnClose);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        setLocationRelativeTo(null); // Centrar en pantalla
+        setLocationRelativeTo(null);
     }
 }

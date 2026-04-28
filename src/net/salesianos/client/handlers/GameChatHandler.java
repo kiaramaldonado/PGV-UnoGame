@@ -6,9 +6,8 @@ import net.salesianos.protocol.Message;
 import javax.swing.*;
 
 /**
- * Handles chat-related functionality.
- * Separates chat logic from GameFrame.
- * Follows Single Responsibility Principle.
+ * Gestiona lo relacionado con el chat.
+ * Separa la lógica del chat de la lógica de GameFrame.
  */
 public class GameChatHandler {
 
@@ -29,7 +28,7 @@ public class GameChatHandler {
     }
 
     /**
-     * Sends a chat message to the server.
+     * Envíar mensaje del chat al servidor
      */
     public void sendMessage() {
         String message = chatInput.getText().trim();
@@ -47,7 +46,7 @@ public class GameChatHandler {
     }
 
     /**
-     * Adds a message to the chat display.
+     * Añadir el mensaje en el display
      */
     public void addMessage(String message) {
         chatArea.append(message + "\n");
@@ -55,7 +54,7 @@ public class GameChatHandler {
     }
 
     /**
-     * Adds a system message (e.g., "SISTEMA: ...").
+     * Añadir mensaje del sistema (e.g., "SISTEMA: ...").
      */
     public void addSystemMessage(String message) {
         addMessage("[SYSTEM] " + message);

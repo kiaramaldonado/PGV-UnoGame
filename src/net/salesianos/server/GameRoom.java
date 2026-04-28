@@ -247,7 +247,7 @@ public class GameRoom {
     public void handleUnoButton(ClientHandler handler, Message message) {
         synchronized (this) {
             if (!gameStarted || gameEnded || unoTargetPlayerId == null) {
-                return; // Ignorar si no hay una disputa activa
+                return;
             }
 
             String clickerId = handler.getPlayerId();
@@ -343,7 +343,6 @@ public class GameRoom {
         Player clientPlayer = playerMap.get(handler.getPlayerId());
         return currentPlayer.equals(clientPlayer);
     }
-
 
     private List<String> getPlayerNames() {
         return gameState != null ?

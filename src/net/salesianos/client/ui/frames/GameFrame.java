@@ -69,7 +69,7 @@ public class GameFrame extends JFrame {
     }
 
     /**
-     * Initialize specialized handlers for separated concerns.
+     * Inicializa los handlers específicos separando responsabilidades.
      */
     private void setupHandlers() {
         chatHandler = new GameChatHandler(chatArea, chatInput, client);
@@ -118,8 +118,6 @@ public class GameFrame extends JFrame {
     }
 
     private void initComponents() {
-        // ...existing code...
-        // Fondo general
         getContentPane().setBackground(new Color(45, 45, 45));
         setLayout(new BorderLayout(10, 10));
 
@@ -151,7 +149,7 @@ public class GameFrame extends JFrame {
         tablePanel.setOpaque(false);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(0, 20, 0, 20); // Espacio entre el mazo y la pila
+        gbc.insets = new Insets(0, 20, 0, 20);
 
         // 1. Mazo para robar (Carta boca abajo)
         drawPileButton = createDrawPileButton();

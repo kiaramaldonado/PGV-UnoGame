@@ -63,7 +63,6 @@ public class LoginFrame extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // Estilo común para las etiquetas
         Font labelFont = new Font("Arial", Font.BOLD, 14);
         Color labelColor = Color.LIGHT_GRAY;
 
@@ -178,10 +177,8 @@ public class LoginFrame extends JFrame {
 
         connectButton.setEnabled(false);
         statusLabel.setText("Conectando...");
-        // Azul clarito para que contraste con el fondo oscuro
         statusLabel.setForeground(new Color(100, 200, 255));
 
-        // Conectar en un hilo separado para no bloquear la UI
         new Thread(() -> connectToServer(playerName, serverHost, port)).start();
     }
 
@@ -189,14 +186,10 @@ public class LoginFrame extends JFrame {
         try {
             client = new Client(playerName, serverHost, port);
 
-            // NO registrar listener aquí - dejar que los mensajes se encolen
-            // para que LobbyFrame los procese luego
             System.out.println("[LOGIN] Cliente creado para " + playerName);
             System.out.println("[LOGIN] NO se registra listener - los mensajes se encolaran");
 
-            // Intentar conectar
             if (client.connect()) {
-                // Esperar confirmación del servidor (en este caso es inmediata)
                 SwingUtilities.invokeLater(() -> {
                     statusLabel.setText("Conectado correctamente");
                     statusLabel.setForeground(new Color(100, 255, 100)); // Verde claro
@@ -218,11 +211,6 @@ public class LoginFrame extends JFrame {
                 connectButton.setEnabled(true);
             });
         }
-    }
-
-    private void handleServerMessage(Message message) {
-        // Por ahora no esperamos respuesta específica
-        // En versiones futuras podría validar credenciales del servidor
     }
 
     private void showError(String message) {

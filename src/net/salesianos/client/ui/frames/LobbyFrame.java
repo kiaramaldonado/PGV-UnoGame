@@ -49,7 +49,6 @@ public class LobbyFrame extends JFrame {
     }
 
     private void initComponents() {
-        // Fondo principal
         getContentPane().setBackground(new Color(45, 45, 45));
         setLayout(new BorderLayout(20, 20));
 

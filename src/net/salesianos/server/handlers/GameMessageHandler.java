@@ -7,9 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Handles message routing for game actions.
- * Separates message dispatching logic from ClientHandler.
- * Follows Single Responsibility Principle.
+ * Gestiona los mensajes para realizar acciones
  */
 public class GameMessageHandler {
 
@@ -24,9 +22,9 @@ public class GameMessageHandler {
     }
 
     /**
-     * Routes a game message to the appropriate handler method.
+     * Conecta el mensaje a la acción que le pertenece
      *
-     * @param message the message to process
+     * @param message el mensaje a procesar
      */
     public void handle(Message message) {
         if (gameRoom == null) {

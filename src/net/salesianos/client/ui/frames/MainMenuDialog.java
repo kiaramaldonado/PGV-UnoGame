@@ -11,7 +11,7 @@ public class MainMenuDialog extends JDialog {
     private String selectedMode = "";
 
     public MainMenuDialog() {
-        super((Frame) null, "UNO - Menú Principal", true); // true = Modal (bloquea hasta que se cierra)
+        super((Frame) null, "UNO - Menú Principal", true);
         setupUI();
     }
 
@@ -29,7 +29,6 @@ public class MainMenuDialog extends JDialog {
 
             if (logoUrl != null) {
                 ImageIcon originalIcon = new ImageIcon(logoUrl);
-                // Escalar la imagen si es necesario
                 Image scaledImage = originalIcon.getImage().getScaledInstance(200, -1, Image.SCALE_SMOOTH);
                 logoLabel.setIcon(new ImageIcon(scaledImage));
             } else {

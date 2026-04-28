@@ -10,9 +10,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * Handles game state updates from the server.
- * Separates game state processing logic from GameFrame UI code.
- * Follows Single Responsibility Principle.
+ * Gestiona las actualizaciones del estado del juego desde el servidor.
  */
 public class GameStateUpdateHandler {
 

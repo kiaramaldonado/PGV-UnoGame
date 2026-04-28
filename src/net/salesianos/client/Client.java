@@ -53,7 +53,6 @@ public class Client {
             // Usar SocketIOHandler centralizado
             ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
 
-
             connected = true;
             LOGGER.log(Level.INFO, "Conectado al servidor " + serverHost + ":" + serverPort);
 

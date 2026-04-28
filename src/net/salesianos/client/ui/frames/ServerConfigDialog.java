@@ -54,12 +54,10 @@ public class ServerConfigDialog extends JDialog {
         buttonPanel.setOpaque(false);
 
         GameButton btnConfirm = new GameButton("ABRIR SALA", null);
-        // Podemos ajustar el tamaño para que no sean tan grandes como los del menú principal
         btnConfirm.setPreferredSize(new Dimension(160, 50));
 
         GameButton btnCancel = new GameButton("CANCELAR", null);
         btnCancel.setPreferredSize(new Dimension(160, 50));
-        // Opcional: Podrías añadir un color diferente al botón cancelar en GameButton
 
         btnConfirm.addActionListener(e -> {
             port = portField.getText();
