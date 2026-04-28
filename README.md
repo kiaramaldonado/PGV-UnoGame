@@ -36,10 +36,49 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
    - Selecciona **"Jugar"** para abrir el cliente. Introduce tu nombre, la IP del servidor y el puerto.
 3. **Lobby**: Una vez conectados al menos 2 jugadores y todos marquen "Listo", la partida comenzará automáticamente.
 
-## Documentación Detallada
+## Documentación Completa
 
-Puedes encontrar más detalles técnicos en la carpeta `docs/`:
-- [Comunicación Cliente-Servidor](docs/communication.md)
-- [Estructura del Proyecto](docs/structure.md)
+1. **[Escenario Práctico](docs/01-scene.md)**
+   - Justificación de la necesidad de comunicación cliente-servidor
+   - Ciclo completo de comunicación (conexión, lobby, juego, finalización)
+   - Por qué es imposible implementar UNO localmente sin red
+
+2. **[Roles: Cliente y Servidor](docs/02-client-server-roles.md)**
+   - Responsabilidades específicas del servidor (validación, sincronización, broadcasting)
+   - Responsabilidades específicas del cliente (interfaz, envío de acciones)
+   - Modelo de interacción completo
+
+3. **[Clases y Librerías Java](docs/03-libraries.md)**
+   - `java.net.Socket` y `java.net.ServerSocket` para comunicación
+   - `java.io.ObjectInputStream/ObjectOutputStream` para serialización
+   - `java.lang.Thread` para concurrencia
+   - Clases personalizadas (`Message`, `SocketIOHandler`, etc.)
+   - Tabla completa de librerías y sus propósitos
+
+4. **[Servidor Multihilo](docs/04-threads.md)**
+   - Arquitectura del servidor con múltiples threads
+   - `ClientHandler`: gestión de un cliente en thread separado
+   - Sincronización y thread-safety con `synchronized`
+   - Garantías de concurrencia (exclusión mutua, visibilidad)
+   - Flujo de 4 clientes conectados simultáneamente
+
+5. **[Aplicación Cliente](docs/05-client.md)**
+   - Conexión TCP mediante `Socket`
+   - Thread receptor asíncrono (`startMessageReceiver()`)
+   - Mecanismo de encolamiento de mensajes (sin pérdidas)
+   - Envío sincronizado (`synchronized sendMessage()`)
+   - Ciclo completo de una jugada
+
+6. **[Sockets TCP: Intercambio Eficaz](docs/06-sockets.md)**
+   - TCP vs UDP: por qué TCP para UNO
+   - Arquitectura de `ServerSocket` y `Socket`
+   - Flujos de entrada/salida (ObjectInputStream/ObjectOutputStream)
+   - Protocolo `Message`: serialización tipada
+   - Garantías de entrega y orden
+   - Ciclo completo: envío, serialización, transmisión, recepción, deserialización
+
+### 📖 Documentación Técnica Adicional
+
+- [Estructura del Proyecto](docs/structure.md) - Organización de carpetas y responsabilidades
 
 [ Hecho por Kiara Maldonado ]
