@@ -1,4 +1,4 @@
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 ---
 
 # Sockets TCP: Intercambio de Información
@@ -75,4 +75,4 @@ El resultado es que la capa de aplicación (el juego) nunca necesita preocuparse
 La comunicación se apoya en tres capas que trabajan juntas: **TCP** garantiza que los datos lleguen bien; **ObjectInputStream/ObjectOutputStream** convierte objetos Java en bytes y los reconstruye al otro lado; y la clase **Message** define un protocolo claro con tipos seguros. El conjunto permite que servidor y clientes se comuniquen de forma fiable, en orden y sin necesidad de parsear texto manualmente.
 
 ---
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)

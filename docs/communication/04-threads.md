@@ -1,4 +1,4 @@
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 ---
 
 # Servidor Multihilo: Gestión Concurrente de Clientes
@@ -133,4 +133,4 @@ Otros mecanismos usados en el proyecto:
 El servidor usa un **hilo por cliente** con `ClientHandler`. Cada hilo es independiente excepto al acceder a `GameRoom`, donde `synchronized` evita conflictos. El resultado es un sistema que soporta múltiples partidas simultáneas, detecta desconexiones de forma segura y escala añadiendo más `GameRoom`s sin modificar la lógica de red.
 
 ---
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)

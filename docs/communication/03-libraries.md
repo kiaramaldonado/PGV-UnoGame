@@ -1,4 +1,4 @@
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 ---
 
 # Clases y Librerías Java de Comunicación
@@ -436,5 +436,5 @@ La arquitectura de comunicación se construye en capas:
 Cada capa es **responsable de una cosa** (SRP), lo que facilita testing, debugging y mantenimiento.
 
 ---
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 

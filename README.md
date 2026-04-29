@@ -38,38 +38,38 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
 
 ## Documentación Completa
 
-1. **[Escenario Práctico](docs/01-scene.md)**
+1. **[Escenario Práctico](docs/communication/01-scene.md)**
    - Justificación de la necesidad de comunicación cliente-servidor
    - Ciclo completo de comunicación (conexión, lobby, juego, finalización)
    - Por qué es imposible implementar UNO localmente sin red
 
-2. **[Roles: Cliente y Servidor](docs/02-client-server-roles.md)**
+2. **[Roles: Cliente y Servidor](docs/communication/02-client-server-roles.md)**
    - Responsabilidades específicas del servidor (validación, sincronización, broadcasting)
    - Responsabilidades específicas del cliente (interfaz, envío de acciones)
    - Modelo de interacción completo
 
-3. **[Clases y Librerías Java](docs/03-libraries.md)**
+3. **[Clases y Librerías Java](docs/communication/03-libraries.md)**
    - `java.net.Socket` y `java.net.ServerSocket` para comunicación
    - `java.io.ObjectInputStream/ObjectOutputStream` para serialización
    - `java.lang.Thread` para concurrencia
    - Clases personalizadas (`Message`, `SocketIOHandler`, etc.)
    - Tabla completa de librerías y sus propósitos
 
-4. **[Servidor Multihilo](docs/04-threads.md)**
+4. **[Servidor Multihilo](docs/communication/04-threads.md)**
    - Arquitectura del servidor con múltiples threads
    - `ClientHandler`: gestión de un cliente en thread separado
    - Sincronización y thread-safety con `synchronized`
    - Garantías de concurrencia (exclusión mutua, visibilidad)
    - Flujo de 4 clientes conectados simultáneamente
 
-5. **[Aplicación Cliente](docs/05-client.md)**
+5. **[Aplicación Cliente](docs/communication/05-client.md)**
    - Conexión TCP mediante `Socket`
    - Thread receptor asíncrono (`startMessageReceiver()`)
    - Mecanismo de encolamiento de mensajes (sin pérdidas)
    - Envío sincronizado (`synchronized sendMessage()`)
    - Ciclo completo de una jugada
 
-6. **[Sockets TCP: Intercambio Eficaz](docs/06-sockets.md)**
+6. **[Sockets TCP: Intercambio Eficaz](docs/communication/06-sockets.md)**
    - TCP vs UDP: por qué TCP para UNO
    - Arquitectura de `ServerSocket` y `Socket`
    - Flujos de entrada/salida (ObjectInputStream/ObjectOutputStream)

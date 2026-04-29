@@ -1,4 +1,4 @@
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 ---
 
 # Cliente: Comunicación Asíncrona con Servidor
@@ -148,4 +148,4 @@ El cliente combina tres mecanismos para comunicarse de forma fiable y sin bloque
 El resultado es una interfaz siempre responsive que se mantiene sincronizada con el servidor en tiempo real.
 
 ---
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)

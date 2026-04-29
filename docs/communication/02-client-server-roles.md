@@ -1,4 +1,4 @@
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 ---
 
 # Roles del Cliente y Servidor
@@ -255,5 +255,5 @@ CLIENTE                              SERVIDOR
 - **Encolamiento cliente:** Mensajes no se pierden antes de que listener esté listo
 
 ---
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 

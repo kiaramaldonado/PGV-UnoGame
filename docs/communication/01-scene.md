@@ -1,4 +1,4 @@
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 ---
 
 # Escenario Práctico: UNO Game Multijugador
@@ -62,5 +62,5 @@ El juego UNO es un caso de uso **fundamental** para aprender arquitectura client
 Este escenario es completamente **no divisible** sin sacrificar seguridad, funcionalidad o experiencia del usuario.
 
 ---
-[← Volver al README](../README.md)
+[← Volver al README](../../README.md)
 
