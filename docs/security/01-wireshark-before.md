@@ -1,6 +1,6 @@
 [← Volver al README](../../README.md)
 
-# Actividad 1: Análisis de Tráfico sin Cifrar con Wireshark
+# Análisis de Tráfico sin Cifrar con Wireshark
 
 ## Descripción
 En esta actividad se analiza el tráfico de red entre cliente y servidor **antes de aplicar cifrado**. El objetivo es:
