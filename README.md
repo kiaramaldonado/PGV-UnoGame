@@ -42,8 +42,6 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
    - Captura con Wireshark de tráfico sin protección
    - Identificación de datos sensibles transmitidos en texto plano
    - Tipos de mensajes vulnerables
-   - Instrucciones paso a paso para reproducir análisis
-   - Riesgos de seguridad identificados (CRÍTICO, ALTO, MEDIO)
 
 2. **[Clase de Encriptación](docs/security/02-encrypt-class.md)**
    - Diseño de clases `SecureManager` y `FileManager`
@@ -57,14 +55,12 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
 
 4. **[Análisis de Tráfico Cifrado](docs/security/04-wireshark-after.md)**
    - Captura con Wireshark tras aplicar cifrado
-   - Comparativa antes/después
-   - Verificación de protección
 
 5. **[Esquema de Seguridad basado en Roles](docs/security/05-roles-schema.md)**
-   - Arquitectura de roles (Admin, Player, Spectator)
-   - Políticas de acceso
-   - Escalabilidad hacia proyecto mayor
-   - 
+   - Arquitectura de roles 
+   - Flujo de permisos y control de acceso
+   - Escalabilidad para proyectos futuros
+
 ## Documentación de Comunicación Cliente-Servidor
 
 1. **[Escenario Práctico](docs/communication/01-scene.md)**
