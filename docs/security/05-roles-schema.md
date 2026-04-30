@@ -8,7 +8,7 @@ Para escalar la aplicación UNO Game a un proyecto más grande con múltiples us
 
 ## 2. Definición de Roles
 
-![Roles y Permisos](docs/assets/roles-schema.png)
+![Roles y Permisos](/docs/assets/roles-schema.png)
 
 ### 2.1 Jugador (PLAYER)
 **Descripción**: Usuario estándar que juega partidas.
@@ -109,13 +109,13 @@ Para escalar la aplicación UNO Game a un proyecto más grande con múltiples us
 ### 4.1 Autenticación
 El cliente envía usuario y contraseña al servidor de autenticación. El servidor verifica que las credenciales sean correctas y, si es así, construye un token JWT cuyo payload incluye el userId, el role asignado, la lista de permissions y la fecha de expiración. Antes de enviarlo, el servidor firma ese payload usando RSA-2048, lo que garantiza que nadie pueda falsificar ni modificar el token. El cliente recibe el JWT y lo guarda en sesión (normalmente en memoria o en una cookie HttpOnly).
 
-![Flujo de Login](docs/assets/login-schema.png)
+![Flujo de Login](/docs/assets/login-schema.png)
 
 ### 4.3 Autorización
 A partir de ese momento, el cliente adjunta el JWT en la cabecera Authorization de cada petición. El servidor de autorización hace dos comprobaciones en orden: primero verifica la firma RSA para asegurarse de que el token no fue alterado, y luego comprueba si el rol del token tiene el permiso necesario para esa acción concreta.
 El resultado es binario: si pasa ambas verificaciones, la acción se ejecuta y queda registrada en el log de auditoría. Si falla cualquiera de las dos (token expirado, firma inválida, o permiso insuficiente), el servidor responde con un error 403 Forbidden y el intento queda registrado igualmente, lo que permite detectar patrones de acceso no autorizado.
 
-![Flujo de Autorización](docs/assets/authorization-schema.png)
+![Flujo de Autorización](/docs/assets/authorization-schema.png)
 
 ---
 
@@ -227,7 +227,6 @@ public enum MessageType {
 
 ### 9.2 Validación en cada operación
 ```java
-// Pseudo-código
 if (!validateToken(message.getToken())) {
     return ERROR("Invalid token");
 }
@@ -239,7 +238,6 @@ if (!userRole.hasPermission(requiredPermission)) {
     return PERMISSION_DENIED(action);
 }
 
-// Ejecutar acción
 executeAction(action);
 ```
 
