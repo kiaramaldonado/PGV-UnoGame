@@ -28,6 +28,7 @@ public class Client {
     private MessageListener listener;
     private Thread receiverThread;
     private final Queue<Message> messageQueue;
+    private String encryptionKey;
 
     public interface MessageListener {
         void onMessageReceived(Message message);
@@ -36,9 +37,14 @@ public class Client {
     }
 
     public Client(String playerName, String serverHost, int serverPort) {
+        this(playerName, serverHost, serverPort, null);
+    }
+
+    public Client(String playerName, String serverHost, int serverPort, String encryptionKey) {
         this.playerName = playerName;
         this.serverHost = serverHost;
         this.serverPort = serverPort;
+        this.encryptionKey = encryptionKey;
         this.connected = false;
         this.messageQueue = new ConcurrentLinkedQueue<>();
     }
@@ -51,7 +57,7 @@ public class Client {
             socket = new Socket(serverHost, serverPort);
 
             // Usar SocketIOHandler centralizado
-            ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
+            ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream(), encryptionKey);
 
             connected = true;
             LOGGER.log(Level.INFO, "Conectado al servidor " + serverHost + ":" + serverPort);
