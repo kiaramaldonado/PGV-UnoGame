@@ -27,12 +27,18 @@ public class ClientHandler implements Runnable {
     private GameRoom gameRoom;
     private GameMessageHandler gameMessageHandler;
     private boolean running;
+    private String encryptionKey;
 
     public ClientHandler(Socket socket, Server server) {
+        this(socket, server, null);
+    }
+
+    public ClientHandler(Socket socket, Server server, String encryptionKey) {
         this.socket = socket;
         this.server = server;
         this.running = true;
         this.playerId = generatePlayerId();
+        this.encryptionKey = encryptionKey;
     }
 
     /**
@@ -49,7 +55,7 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             // Usar SocketIOHandler centralizado
-            ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream());
+            ioHandler = new SocketIOHandler(socket.getOutputStream(), socket.getInputStream(), encryptionKey);
 
             LOGGER.log(Level.INFO, "ClientHandler iniciado para " + socket.getInetAddress());
 
