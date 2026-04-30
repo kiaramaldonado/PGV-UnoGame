@@ -41,11 +41,6 @@ public class SocketIOHandler {
         if (secretKey != null) {
             this.secureManager = new SecureManager(secretKey);
         } else {
-            byte[] savedKey = FileManager.readSecretKey();
-            if (savedKey == null) {
-                SecureManager manager = new SecureManager();
-                manager.generateAndSaveKey();
-            }
             this.secureManager = new SecureManager();
         }
     }

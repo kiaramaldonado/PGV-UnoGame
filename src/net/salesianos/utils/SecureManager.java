@@ -19,7 +19,16 @@ public class SecureManager {
     private Cipher decipher;
 
     public SecureManager() {
-        SecretKey savedKey = new SecretKeySpec(FileManager.readSecretKey(), "AES");
+        byte[] keyBytes = FileManager.readSecretKey();
+        if (keyBytes == null || keyBytes.length == 0) {
+            keyBytes = generateAndSaveKey();
+        }
+
+        if (keyBytes == null || keyBytes.length == 0) {
+            throw new IllegalStateException("No se pudo obtener la clave secreta");
+        }
+
+        SecretKey savedKey = new SecretKeySpec(keyBytes, "AES");
         this.initializeCiphers(savedKey);
     }
 
