@@ -8,7 +8,7 @@ public class FileManager {
 
     public static void writeSecretKey(byte[] encodedKey) {
         try {
-            FileOutputStream writer = new FileOutputStream("./secret");
+            FileOutputStream writer = new FileOutputStream("./.secret");
             writer.write(encodedKey);
             writer.flush();
             writer.close();
@@ -20,7 +20,7 @@ public class FileManager {
     public static byte[] readSecretKey() {
         byte[] encodedKey = null;
         try {
-            FileInputStream reader = new FileInputStream("./secret");
+            FileInputStream reader = new FileInputStream("./.secret");
             encodedKey = reader.readAllBytes();
             reader.close();
             return encodedKey;
@@ -31,4 +31,3 @@ public class FileManager {
         return encodedKey;
     }
 }
-
