@@ -70,11 +70,40 @@ Este proyecto es una implementación completa y refactorizada del clásico juego
    - Ciclo completo de una jugada
 
 6. **[Sockets TCP: Intercambio Eficaz](docs/communication/06-sockets.md)**
-   - TCP vs UDP: por qué TCP para UNO
-   - Arquitectura de `ServerSocket` y `Socket`
-   - Flujos de entrada/salida (ObjectInputStream/ObjectOutputStream)
-   - Protocolo `Message`: serialización tipada
-   - Garantías de entrega y orden
-   - Ciclo completo: envío, serialización, transmisión, recepción, deserialización
+    - TCP vs UDP: por qué TCP para UNO
+    - Arquitectura de `ServerSocket` y `Socket`
+    - Flujos de entrada/salida (ObjectInputStream/ObjectOutputStream)
+    - Protocolo `Message`: serialización tipada
+    - Garantías de entrega y orden
+    - Ciclo completo: envío, serialización, transmisión, recepción, deserialización
+
+## Documentación de Seguridad (UD3 - Práctica 2)
+
+1. **[Análisis de Tráfico sin Cifrar (Actividad 1)](docs/security/01-wireshark-before.md)**
+   - Captura con Wireshark de tráfico sin protección
+   - Identificación de datos sensibles transmitidos en texto plano
+   - Tipos de mensajes vulnerables
+   - Instrucciones paso a paso para reproducir análisis
+   - Riesgos de seguridad identificados (CRÍTICO, ALTO, MEDIO)
+
+2. **[Clase de Encriptación](docs/security/02-encrypt-class.md)** *(Próxima actividad)*
+   - Diseño de clase `EncryptionHandler`
+   - Métodos de cifrado/descifrado
+   - Algoritmo criptográfico utilizado
+
+3. **[Integración de Encriptación](docs/security/03-encrypt-implementation.md)** *(Próxima actividad)*
+   - Modificación de `SocketIOHandler` con cifrado
+   - Cambios en Cliente y Servidor
+   - Distribución de claves
+
+4. **[Análisis de Tráfico Cifrado](docs/security/04-wireshark-after.md)** *(Próxima actividad)*
+   - Captura con Wireshark tras aplicar cifrado
+   - Comparativa antes/después
+   - Verificación de protección
+
+5. **[Esquema de Seguridad basado en Roles](docs/security/05-roles-schema.md)** *(Próxima actividad)*
+   - Arquitectura de roles (Admin, Player, Spectator)
+   - Políticas de acceso
+   - Escalabilidad hacia proyecto mayor
 
 [  Hecho por Kiara Maldonado  ]
